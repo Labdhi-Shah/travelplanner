@@ -178,21 +178,24 @@ export default function Packages() {
               {sortedPackages.map((pkg, idx) => (
                 <motion.div
                   key={pkg.id}
-                  className="bg-white rounded-3xl overflow-hidden shadow-md border border-slate-100 flex flex-col justify-between"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  className="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl border border-slate-100 flex flex-col justify-between transition-all duration-300"
+                  initial={{ opacity: 0, y: 35, scale: 0.95 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: false, amount: 0.15 }}
+                  transition={{ duration: 0.5, delay: (idx % 2) * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={{ y: -6 }}
                 >
                   <div className="relative h-48 overflow-hidden">
                     <img
                       src={pkg.image}
                       alt={pkg.name}
+                      loading="lazy"
                       className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                     />
-                    <span className="absolute top-4 left-4 bg-primary-dark/85 backdrop-blur-sm text-white font-heading font-semibold text-[10px] px-2.5 py-1 rounded-full shadow-sm">
+                    <span className="absolute top-4 left-4 bg-primary-dark/85 backdrop-blur-sm text-white font-heading font-bold text-[10px] px-2.5 py-1 rounded-full shadow-sm">
                       {pkg.duration}
                     </span>
-                    <span className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-slate-700 font-heading font-semibold text-[10px] px-2.5 py-1 rounded-full shadow-sm flex items-center space-x-1">
+                    <span className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-slate-800 font-heading font-bold text-[10px] px-2.5 py-1 rounded-full shadow-sm flex items-center space-x-1">
                       <Users size={10} className="text-slate-400" />
                       <span>{pkg.travelers}</span>
                     </span>
@@ -205,7 +208,7 @@ export default function Packages() {
                         <span>{pkg.rating} Rating</span>
                       </div>
                       <h3 className="text-base font-bold text-slate-800 font-heading mb-1 line-clamp-1">{pkg.name}</h3>
-                      <p className="text-slate-400 text-xs line-clamp-2 leading-relaxed mb-4">{pkg.overview}</p>
+                      <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed mb-4">{pkg.overview}</p>
 
                       {/* Inclusions features */}
                       <div className="flex space-x-3 mb-6">
@@ -218,11 +221,11 @@ export default function Packages() {
                     <div className="border-t border-slate-100 pt-4 flex items-center justify-between">
                       <div>
                         <span className="text-[9px] text-slate-400 font-bold uppercase block leading-none mb-1">Starting Price</span>
-                        <span className="text-lg font-bold text-primary">${pkg.price} <span className="text-[10px] text-slate-400 font-normal">total</span></span>
+                        <span className="text-lg font-bold text-primary font-heading">${pkg.price} <span className="text-[10px] text-slate-400 font-normal">total</span></span>
                       </div>
                       <Link
                         to={`/packages/${pkg.id}`}
-                        className="bg-primary hover:bg-primary-light text-white font-heading font-semibold text-xs px-4 py-2 rounded-xl transition-colors shadow-sm"
+                        className="bg-primary hover:bg-primary-light text-white font-heading font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-sm hover:scale-105"
                       >
                         View Package
                       </Link>

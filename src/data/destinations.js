@@ -6,9 +6,9 @@ export const destinations = [
     image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80",
     gallery: [
       "https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1518548419070-ad8e3d53b94c?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1501179691627-eeaa65ea017c?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=800&q=80"
+      "https://images.unsplash.com/photo-1559628376-f3fe5f782a2e?auto=format&fit=crop&w=800&q=80"
     ],
     price: 850,
     rating: 4.8,
@@ -26,9 +26,9 @@ export const destinations = [
       wind: "12 km/h"
     },
     attractions: [
-      { name: "Ubud Monkey Forest", image: "https://images.unsplash.com/photo-1518548419070-ad8e3d53b94c?auto=format&fit=crop&w=300&q=80" },
-      { name: "Tanah Lot Temple", image: "https://images.unsplash.com/photo-1501179691627-eeaa65ea017c?auto=format&fit=crop&w=300&q=80" },
-      { name: "Uluwatu Cliff Temple", image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=300&q=80" }
+      { name: "Ubud Monkey Forest", image: "https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?auto=format&fit=crop&w=800&q=80" },
+      { name: "Tanah Lot Temple", image: "https://images.unsplash.com/photo-1501179691627-eeaa65ea017c?auto=format&fit=crop&w=800&q=80" },
+      { name: "Uluwatu Cliff Temple", image: "https://images.unsplash.com/photo-1559628376-f3fe5f782a2e?auto=format&fit=crop&w=800&q=80" }
     ],
     tips: [
       "Respect local customs and dress modestly when visiting temples.",
@@ -45,7 +45,7 @@ export const destinations = [
     gallery: [
       "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1522083165195-3427502977a1?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1565099824688-e93eb20fe622?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=800&q=80"
     ],
     price: 1200,
@@ -64,9 +64,9 @@ export const destinations = [
       wind: "8 km/h"
     },
     attractions: [
-      { name: "Eiffel Tower", image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=300&q=80" },
-      { name: "Louvre Museum", image: "https://images.unsplash.com/photo-1522083165195-3427502977a1?auto=format&fit=crop&w=300&q=80" },
-      { name: "Arc de Triomphe", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=300&q=80" }
+      { name: "Eiffel Tower", image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=800&q=80" },
+      { name: "Louvre Museum", image: "https://images.unsplash.com/photo-1565099824688-e93eb20fe622?auto=format&fit=crop&w=800&q=80" },
+      { name: "Arc de Triomphe", image: "https://images.unsplash.com/photo-1549144511-f099e773c147?auto=format&fit=crop&w=800&q=80" }
     ],
     tips: [
       "Book museum tickets online in advance to skip hours of queues.",
@@ -102,9 +102,9 @@ export const destinations = [
       wind: "18 km/h"
     },
     attractions: [
-      { name: "Oia Sunset Viewpoint", image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=300&q=80" },
-      { name: "Red Beach", image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=300&q=80" },
-      { name: "Akrotiri Archaeological Site", image: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=300&q=80" }
+      { name: "Oia Sunset Viewpoint", image: "https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=800&q=80" },
+      { name: "Red Beach", image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80" },
+      { name: "Akrotiri Archaeological Site", image: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=800&q=80" }
     ],
     tips: [
       "Walk down the steps from Oia to Amoudi Bay for fresh seafood.",
@@ -120,8 +120,8 @@ export const destinations = [
     image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80",
     gallery: [
       "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1528702748617-c64d494307ca?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1580674285054-bed31e145f59?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1489516408517-0c0a15662682?auto=format&fit=crop&w=800&q=80"
     ],
     price: 1500,
@@ -140,9 +140,9 @@ export const destinations = [
       wind: "10 km/h"
     },
     attractions: [
-      { name: "Burj Khalifa", image: "https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?auto=format&fit=crop&w=300&q=80" },
-      { name: "The Dubai Mall", image: "https://images.unsplash.com/photo-1528702748617-c64d494307ca?auto=format&fit=crop&w=300&q=80" },
-      { name: "Desert Safari Dunes", image: "https://images.unsplash.com/photo-1489516408517-0c0a15662682?auto=format&fit=crop&w=300&q=80" }
+      { name: "Burj Khalifa", image: "https://images.unsplash.com/photo-1580674684081-7617fbf3d745?auto=format&fit=crop&w=800&q=80" },
+      { name: "The Dubai Mall", image: "https://images.unsplash.com/photo-1580674285054-bed31e145f59?auto=format&fit=crop&w=800&q=80" },
+      { name: "Desert Safari Dunes", image: "https://images.unsplash.com/photo-1489516408517-0c0a15662682?auto=format&fit=crop&w=800&q=80" }
     ],
     tips: [
       "Dress respectfully in public areas (shoulders and knees covered).",
@@ -159,7 +159,7 @@ export const destinations = [
     gallery: [
       "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1490761902450-974dd8b8d846?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80"
     ],
     price: 980,
@@ -178,9 +178,9 @@ export const destinations = [
       wind: "6 km/h"
     },
     attractions: [
-      { name: "Fushimi Inari Shrine", image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=300&q=80" },
-      { name: "Kinkaku-ji (Golden Pavilion)", image: "https://images.unsplash.com/photo-1490761902450-974dd8b8d846?auto=format&fit=crop&w=300&q=80" },
-      { name: "Arashiyama Bamboo Grove", image: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=300&q=80" }
+      { name: "Fushimi Inari Shrine", image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=800&q=80" },
+      { name: "Kinkaku-ji (Golden Pavilion)", image: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=800&q=80" },
+      { name: "Arashiyama Bamboo Grove", image: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80" }
     ],
     tips: [
       "Get to popular spots like Fushimi Inari at sunrise to avoid crowds.",
@@ -216,9 +216,9 @@ export const destinations = [
       wind: "15 km/h"
     },
     attractions: [
-      { name: "Matterhorn", image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=300&q=80" },
-      { name: "Interlaken Lakes", image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=300&q=80" },
-      { name: "Jungfraujoch - Top of Europe", image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=300&q=80" }
+      { name: "Matterhorn", image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=800&q=80" },
+      { name: "Interlaken Lakes", image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80" },
+      { name: "Jungfraujoch - Top of Europe", image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=800&q=80" }
     ],
     tips: [
       "Purchase a Swiss Travel Pass for unlimited train, bus, and boat rides.",
@@ -254,9 +254,9 @@ export const destinations = [
       wind: "9 km/h"
     },
     attractions: [
-      { name: "Male City Mosque", image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=300&q=80" },
-      { name: "Banana Reef Diving", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=300&q=80" },
-      { name: "Vaadhoo Island bioluminescent beach", image: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=300&q=80" }
+      { name: "Male City Mosque", image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=800&q=80" },
+      { name: "Banana Reef Diving", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80" },
+      { name: "Vaadhoo Island bioluminescent beach", image: "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=800&q=80" }
     ],
     tips: [
       "Seaplanes only fly during daylight hours, so schedule flights accordingly.",
@@ -292,9 +292,9 @@ export const destinations = [
       wind: "11 km/h"
     },
     attractions: [
-      { name: "Times Square", image: "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?auto=format&fit=crop&w=300&q=80" },
-      { name: "Central Park", image: "https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=300&q=80" },
-      { name: "Empire State Building", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=300&q=80" }
+      { name: "Times Square", image: "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?auto=format&fit=crop&w=800&q=80" },
+      { name: "Central Park", image: "https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=800&q=80" },
+      { name: "Empire State Building", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80" }
     ],
     tips: [
       "Get a MetroCard or use OMNY contactless tap to ride the subway.",

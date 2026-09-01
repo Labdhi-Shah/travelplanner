@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import DashboardHeader from '../components/DashboardHeader';
 import { useTravel } from '../context/TravelContext';
 
 export default function DashboardLayout() {
   const { isLoggedIn } = useTravel();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // For testing convenience, we do not restrict access. However, we can add a check if needed.
-  // if (!isLoggedIn) {
-  //   return <Navigate to="/login" replace />;
-  // }
+  if (!isLoggedIn) {
+    return <Navigate to="/login" state={{ from: location, redirectTo: location.pathname }} replace />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex text-slate-800">

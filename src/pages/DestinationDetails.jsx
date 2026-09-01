@@ -170,20 +170,33 @@ export default function DestinationDetails() {
             {/* TAB 1: Attractions */}
             {activeTab === 'attractions' && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                {destination.attractions.map((att) => (
-                  <div key={att.name} className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm group">
-                    <div className="h-40 overflow-hidden relative">
+                {destination.attractions.map((att, idx) => (
+                  <motion.div 
+                    key={att.name} 
+                    className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm group hover:shadow-xl transition-all duration-300"
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                    viewport={{ once: false, amount: 0.2 }}
+                    transition={{ duration: 0.5, delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -6 }}
+                  >
+                    <div className="h-40 overflow-hidden relative bg-slate-100">
                       <img
                         src={att.image}
-                        alt={att.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        alt={`${att.name} in ${destination.name}`}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = destination.image;
+                        }}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
                     </div>
                     <div className="p-4">
                       <h4 className="font-heading font-bold text-sm text-slate-800">{att.name}</h4>
                       <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mt-1">Recommended Sight</span>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
@@ -192,11 +205,20 @@ export default function DestinationDetails() {
             {activeTab === 'hotels' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {matchedHotels.length > 0 ? (
-                  matchedHotels.map((hotel) => (
-                    <div key={hotel.id} className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm p-4 flex space-x-4">
+                  matchedHotels.map((hotel, idx) => (
+                    <motion.div 
+                      key={hotel.id} 
+                      className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl p-4 flex space-x-4 transition-all duration-300"
+                      initial={{ opacity: 0, x: idx % 2 === 0 ? -25 : 25, y: 20 }}
+                      whileInView={{ opacity: 1, x: 0, y: 0 }}
+                      viewport={{ once: false, amount: 0.2 }}
+                      transition={{ duration: 0.5, delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                      whileHover={{ y: -4 }}
+                    >
                       <img
                         src={hotel.image}
                         alt={hotel.name}
+                        loading="lazy"
                         className="w-24 h-24 rounded-xl object-cover shrink-0"
                       />
                       <div className="flex flex-col justify-between overflow-hidden">
@@ -205,13 +227,13 @@ export default function DestinationDetails() {
                           <span className="text-[10px] text-slate-400 flex items-center mt-1"><MapPin size={10} className="mr-0.5" /> {hotel.location}</span>
                         </div>
                         <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
-                          <span className="text-xs font-bold text-primary">${hotel.price} <span className="text-[10px] text-slate-400 font-normal">/ night</span></span>
-                          <div className="flex items-center text-amber-500 text-[10px] font-bold bg-amber-50 px-1 py-0.5 rounded">
+                          <span className="text-xs font-bold text-primary font-heading">${hotel.price} <span className="text-[10px] text-slate-400 font-normal">/ night</span></span>
+                          <div className="flex items-center text-amber-500 text-[10px] font-bold bg-amber-50 px-1.5 py-0.5 rounded">
                             <Star size={10} className="fill-amber-500 mr-0.5" /> {hotel.rating}
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   ))
                 ) : (
                   <p className="text-slate-400 text-xs py-4">No specific hotels listed for this destination yet.</p>

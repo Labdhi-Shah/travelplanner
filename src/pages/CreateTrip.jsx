@@ -7,10 +7,11 @@ import {
 } from 'lucide-react';
 import { useTravel } from '../context/TravelContext';
 import { destinations } from '../data/destinations';
+import { generateBookingReference } from '../utils/pricing';
 
 export default function CreateTrip() {
   const navigate = useNavigate();
-  const { addTrip } = useTravel();
+  const { addTrip, createPendingBooking } = useTravel();
   const [searchParams] = useSearchParams();
 
   // Multi-step Wizard state
@@ -57,10 +58,12 @@ export default function CreateTrip() {
   };
 
   const handleCreate = () => {
-    const selectedDest = destinations.find(d => d.id === destinationId);
+    const selectedDest = destinations.find(d => d.id === destinationId) || destinations[0];
+    const totalTravelers = (Number(adults) || 2) + (Number(children) || 0);
+    const baseINR = Number(budgetLimit) > 0 ? Number(budgetLimit) * 85 : 65000;
     
     const tripId = addTrip({
-      name: `${selectedDest.name} Exploration`,
+      name: `${selectedDest.name} Custom Trip`,
       destinationId,
       destinationName: selectedDest.name,
       country: selectedDest.country,
@@ -73,7 +76,25 @@ export default function CreateTrip() {
       budgetLimit: Number(budgetLimit)
     });
 
-    navigate('/dashboard/my-trips');
+    const bookingData = {
+      id: `booking-${Date.now()}`,
+      reference: generateBookingReference('TR'),
+      tripId,
+      category: 'Activities',
+      type: 'Custom Tour',
+      title: `${selectedDest.name} Custom Tour Itinerary`,
+      destination: `${selectedDest.name}, ${selectedDest.country}`,
+      location: `${selectedDest.name}, ${selectedDest.country}`,
+      date: startDate,
+      endDate: endDate,
+      baseAmountINR: baseINR,
+      travelersCount: totalTravelers,
+      image: selectedDest.image,
+      status: 'Pending Payment'
+    };
+
+    createPendingBooking(bookingData);
+    navigate('/payment', { state: { booking: bookingData } });
   };
 
   // Preference tags options
@@ -433,9 +454,9 @@ export default function CreateTrip() {
           ) : (
             <button
               onClick={handleCreate}
-              className="bg-accent hover:bg-accent-light text-primary-dark font-heading font-semibold text-xs px-6 py-2.5 rounded-xl flex items-center space-x-1.5 shadow-md shadow-accent/15 transition-transform hover:-translate-y-0.5"
+              className="bg-accent hover:bg-accent-light text-primary-dark font-heading font-bold text-xs px-6 py-2.5 rounded-xl flex items-center space-x-1.5 shadow-md shadow-accent/15 transition-transform hover:-translate-y-0.5 cursor-pointer"
             >
-              <span>Compile Plan</span>
+              <span>Submit Booking & Proceed to Payment</span>
               <Sparkles size={14} />
             </button>
           )}

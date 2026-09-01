@@ -255,22 +255,25 @@ export default function Destinations() {
               {sortedDestinations.map((dest, index) => (
                 <motion.div
                   key={dest.id}
-                  className="bg-white rounded-3xl overflow-hidden shadow-md border border-slate-100 group flex flex-col justify-between"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  className="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl border border-slate-100 group flex flex-col justify-between transition-all duration-300"
+                  initial={{ opacity: 0, y: 30, scale: 0.96 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: false, amount: 0.15 }}
+                  transition={{ duration: 0.5, delay: (index % 2) * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={{ y: -6 }}
                 >
                   <div className="relative h-52 overflow-hidden shrink-0">
                     <img
                       src={dest.image}
                       alt={dest.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     
                     {/* Heart button */}
                     <button
                       onClick={() => toggleFavorite(dest.id)}
-                      className="absolute top-4 right-4 p-2 rounded-full bg-white/90 text-slate-600 hover:text-red-500 shadow-sm"
+                      className="absolute top-4 right-4 p-2 rounded-full bg-white/90 text-slate-600 hover:text-red-500 shadow-sm cursor-pointer"
                     >
                       <Heart
                         size={16}
@@ -278,7 +281,7 @@ export default function Destinations() {
                       />
                     </button>
                     
-                    <span className="absolute bottom-4 left-4 bg-accent text-primary-dark font-heading font-semibold text-[10px] px-2.5 py-0.5 rounded-full">
+                    <span className="absolute bottom-4 left-4 bg-accent text-primary-dark font-heading font-bold text-[10px] px-2.5 py-0.5 rounded-full shadow-sm">
                       {dest.category}
                     </span>
                   </div>
@@ -295,17 +298,17 @@ export default function Destinations() {
                       </div>
                       
                       <h3 className="text-lg font-bold text-slate-800 font-heading mb-1">{dest.name}</h3>
-                      <p className="text-slate-400 text-xs line-clamp-3 leading-relaxed mb-4">{dest.description}</p>
+                      <p className="text-slate-500 text-xs line-clamp-3 leading-relaxed mb-4">{dest.description}</p>
                     </div>
 
                     <div className="flex justify-between items-center border-t border-slate-100 pt-3">
                       <div>
                         <span className="text-[9px] text-slate-400 font-bold uppercase block">Starts From</span>
-                        <span className="text-base font-bold text-primary">${dest.price} <span className="text-[10px] text-slate-400 font-normal">/ pax</span></span>
+                        <span className="text-base font-bold text-primary font-heading">${dest.price} <span className="text-[10px] text-slate-400 font-normal">/ pax</span></span>
                       </div>
                       <Link
                         to={`/destinations/${dest.id}`}
-                        className="flex items-center space-x-0.5 font-heading text-xs font-semibold text-primary hover:text-accent"
+                        className="flex items-center space-x-0.5 font-heading text-xs font-bold text-primary hover:text-accent group-hover:translate-x-1 transition-all duration-200"
                       >
                         <span>Explore</span>
                         <ArrowRight size={12} />

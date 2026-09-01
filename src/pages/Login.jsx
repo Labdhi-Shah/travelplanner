@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Mail, Lock, LogIn } from 'lucide-react';
 import { useTravel } from '../context/TravelContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { loginUser } = useTravel();
 
   const [email, setEmail] = useState('');
@@ -14,17 +15,28 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setErrorMsg(null);
     if (email && password) {
-      loginUser(email, password);
-      navigate('/dashboard');
+      const res = loginUser(email, password);
+      if (res && res.success) {
+        const destination = location.state?.from?.pathname || location.state?.redirectTo || '/dashboard';
+        navigate(destination, { replace: true });
+      } else {
+        setErrorMsg(res?.message || 'Invalid email or password');
+      }
     } else {
       setErrorMsg('Please enter both email and password.');
     }
   };
 
   const handleGoogleLogin = () => {
-    loginUser('emily.watson@example.com', 'google_sso');
-    navigate('/dashboard');
+    const res = loginUser('travel@123.com', '');
+    if (res && res.success) {
+      const destination = location.state?.from?.pathname || location.state?.redirectTo || '/dashboard';
+      navigate(destination, { replace: true });
+    } else {
+      setErrorMsg(res?.message || 'Invalid email or password');
+    }
   };
 
   return (

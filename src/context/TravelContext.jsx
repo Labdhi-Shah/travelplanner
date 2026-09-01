@@ -71,14 +71,16 @@ export const TravelProvider = ({ children }) => {
 
   // Auth Operations
   const loginUser = (email, password) => {
-    // Basic mock authentication: any password works for the demo
-    setIsLoggedIn(true);
-    setUser(prev => ({
-      ...prev,
-      email: email,
-      name: prev.name || email.split('@')[0]
-    }));
-    return { success: true };
+    if (email === 'travel@123.com' && password === 'Travel@123') {
+      setIsLoggedIn(true);
+      setUser(prev => ({
+        ...prev,
+        email: email,
+        name: prev?.name || 'Traveler'
+      }));
+      return { success: true };
+    }
+    return { success: false, message: 'Invalid email or password' };
   };
 
   const registerUser = (fullName, email, password) => {
@@ -292,12 +294,24 @@ export const TravelProvider = ({ children }) => {
     return savedPlaces.some(item => item.id === placeId);
   };
 
+  const [currentCheckout, setCurrentCheckout] = useState(() => {
+    const saved = localStorage.getItem('ts_current_checkout');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    if (currentCheckout) {
+      localStorage.setItem('ts_current_checkout', JSON.stringify(currentCheckout));
+    }
+  }, [currentCheckout]);
+
   // Booking Operations
   const addBooking = (bookingData) => {
     const newBooking = {
-      id: `booking-${Date.now()}`,
-      reference: `TS-${Math.floor(1000 + Math.random() * 9000)}`,
-      status: 'Confirmed',
+      id: bookingData.id || `booking-${Date.now()}`,
+      reference: bookingData.reference || `TS-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: bookingData.status || 'Confirmed',
+      createdAt: new Date().toISOString(),
       ...bookingData
     };
     setBookings(prev => [newBooking, ...prev]);
@@ -314,6 +328,71 @@ export const TravelProvider = ({ children }) => {
         return trip;
       }));
     }
+    return newBooking;
+  };
+
+  const createPendingBooking = (bookingData) => {
+    const pendingBooking = {
+      id: bookingData.id || `booking-${Date.now()}`,
+      reference: bookingData.reference || `TS-${Math.floor(1000 + Math.random() * 9000)}`,
+      status: 'Pending Payment',
+      createdAt: new Date().toISOString(),
+      ...bookingData
+    };
+
+    setBookings(prev => {
+      const exists = prev.find(b => b.id === pendingBooking.id);
+      if (exists) {
+        return prev.map(b => b.id === pendingBooking.id ? { ...b, ...pendingBooking } : b);
+      }
+      return [pendingBooking, ...prev];
+    });
+
+    setCurrentCheckout(pendingBooking);
+    return pendingBooking;
+  };
+
+  const confirmBookingPayment = (bookingId, paymentDetails = {}) => {
+    let updatedBooking = null;
+
+    setBookings(prev => prev.map(book => {
+      if (book.id === bookingId || book.reference === bookingId) {
+        updatedBooking = {
+          ...book,
+          status: 'Confirmed',
+          paymentStatus: 'Success',
+          razorpayPaymentId: paymentDetails.razorpay_payment_id || `pay_mock_${Date.now()}`,
+          amountPaid: paymentDetails.amountPaidINR || book.totalAmountINR || book.price,
+          paidAt: paymentDetails.paymentDate || new Date().toISOString(),
+          paymentMethod: 'Razorpay Checkout (Test Mode)',
+          ...paymentDetails
+        };
+        return updatedBooking;
+      }
+      return book;
+    }));
+
+    // Update in trips as well if attached to a trip
+    setTrips(prev => prev.map(trip => {
+      if (trip.bookings && trip.bookings.some(b => b.id === bookingId || b.reference === bookingId)) {
+        return {
+          ...trip,
+          bookings: trip.bookings.map(b => (b.id === bookingId || b.reference === bookingId) ? {
+            ...b,
+            status: 'Confirmed',
+            paymentStatus: 'Success',
+            razorpayPaymentId: paymentDetails.razorpay_payment_id,
+            amountPaid: paymentDetails.amountPaidINR || b.totalAmountINR || b.price
+          } : b)
+        };
+      }
+      return trip;
+    }));
+
+    if (updatedBooking) {
+      setCurrentCheckout(updatedBooking);
+    }
+    return updatedBooking;
   };
 
   const cancelBooking = (bookingId) => {
@@ -344,6 +423,8 @@ export const TravelProvider = ({ children }) => {
       savedPlaces,
       bookings,
       favorites,
+      currentCheckout,
+      setCurrentCheckout,
       loginUser,
       registerUser,
       logoutUser,
@@ -362,6 +443,8 @@ export const TravelProvider = ({ children }) => {
       toggleSavedPlace,
       isSavedPlace,
       addBooking,
+      createPendingBooking,
+      confirmBookingPayment,
       cancelBooking
     }}>
       {children}

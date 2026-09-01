@@ -26,9 +26,14 @@ export default function Experiences() {
   };
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto mb-16">
+      <motion.div 
+        className="text-center max-w-2xl mx-auto mb-16"
+        initial={{ opacity: 0, y: 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
         <span className="text-primary font-bold text-sm tracking-wider uppercase font-sans">Tailored Niches</span>
         <h1 className="text-3xl sm:text-4xl font-extrabold font-heading text-slate-800 tracking-tight mt-2">
           Travel Experiences
@@ -36,17 +41,19 @@ export default function Experiences() {
         <p className="text-slate-500 text-sm mt-3 leading-relaxed">
           Filter your next vacation based on your personal lifestyle and hobbies. Select a travel niche below to browse matching destinations.
         </p>
-      </div>
+      </motion.div>
 
       {/* Grid of Experiences */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {experienceCategories.map((exp, index) => (
           <motion.div
             key={exp.name}
-            className="bg-white rounded-3xl overflow-hidden shadow-md border border-slate-100 group cursor-pointer hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.05 }}
+            className="bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl border border-slate-100 group cursor-pointer transition-all duration-300 flex flex-col justify-between"
+            initial={{ opacity: 0, y: 35, scale: 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: false, amount: 0.15 }}
+            transition={{ duration: 0.5, delay: (index % 3) * 0.12, ease: [0.22, 1, 0.36, 1] }}
+            whileHover={{ y: -8 }}
             onClick={() => handleCategoryClick(exp.name)}
           >
             {/* Image banner */}
@@ -54,7 +61,8 @@ export default function Experiences() {
               <img
                 src={exp.image}
                 alt={exp.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent" />
               <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-primary shadow-sm flex items-center space-x-1">
@@ -76,7 +84,7 @@ export default function Experiences() {
 
               <div className="border-t border-slate-100 pt-4 flex items-center justify-between text-xs font-semibold text-primary group-hover:text-accent transition-colors font-heading">
                 <span>Discover Packages</span>
-                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                <ArrowRight size={14} className="transition-transform group-hover:translate-x-1.5 duration-200" />
               </div>
             </div>
           </motion.div>

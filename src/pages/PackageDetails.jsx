@@ -3,21 +3,38 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   ArrowLeft, Star, Clock, Users, ShieldAlert, CheckCircle, 
-  XCircle, ChevronDown, Hotel, Coffee, Plane, Compass, Sparkles, Check 
+  XCircle, ChevronDown, Hotel, Coffee, Plane, Compass, Sparkles, Check, 
+  Calendar, Phone, Mail, User, ShieldCheck, ArrowRight, Lock 
 } from 'lucide-react';
 import { useTravel } from '../context/TravelContext';
 import { packages } from '../data/packages';
+import { calculatePriceBreakdown, formatINR, generateBookingReference } from '../utils/pricing';
 
 export default function PackageDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addTrip, addBooking } = useTravel();
+  const { user, createPendingBooking } = useTravel();
 
   const [expandedDay, setExpandedDay] = useState(1);
-  const [successModal, setSuccessModal] = useState(false);
 
   // Find package
   const pkg = packages.find(p => p.id === id);
+
+  // Booking Form State
+  const [formData, setFormData] = useState(() => {
+    const defaultStart = new Date();
+    defaultStart.setDate(defaultStart.getDate() + 25);
+    return {
+      fullName: user?.name || 'Emily Watson',
+      email: user?.email || 'emily.watson@example.com',
+      phone: user?.phone || '+91 98765 43210',
+      departDate: defaultStart.toISOString().split('T')[0],
+      travelersCount: 2,
+      specialRequests: ''
+    };
+  });
+
+  const [formErrors, setFormErrors] = useState({});
 
   if (!pkg) {
     return (
@@ -31,46 +48,60 @@ export default function PackageDetails() {
     );
   }
 
-  const handleAddToMyTrip = () => {
-    // Generate a new Trip based on this package
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() + 30); // 30 days from now
+  // Calculate live INR price breakdown based on travelers count
+  const basePricePerPerson = pkg.price * 85;
+  const pricing = calculatePriceBreakdown({
+    baseAmountINR: basePricePerPerson * (Number(formData.travelersCount) || 1),
+    travelers: Number(formData.travelersCount) || 1
+  });
+
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.fullName.trim()) errors.fullName = 'Full name is required';
+    if (!formData.email.trim() || !formData.email.includes('@')) errors.email = 'Valid email is required';
+    if (!formData.phone.trim()) errors.phone = 'Contact phone is required';
+    if (!formData.departDate) errors.departDate = 'Travel date is required';
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmitBooking = (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    const startDate = new Date(formData.departDate);
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + pkg.durationDays);
+    endDate.setDate(endDate.getDate() + (pkg.durationDays || 6));
 
-    const tripId = addTrip({
-      name: pkg.name,
-      destinationId: pkg.destinationId,
-      destinationName: pkg.destinationId.charAt(0).toUpperCase() + pkg.destinationId.slice(1),
-      image: pkg.image,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
-      travelers: { adults: 2, children: 0 },
-      budgetLimit: pkg.price * 1.5,
-      route: [pkg.destinationId.charAt(0).toUpperCase() + pkg.destinationId.slice(1)],
-      activities: pkg.itinerary.map((it, idx) => ({
-        id: `act-pkg-${idx}`,
-        day: it.day,
-        time: idx === 0 ? "14:00" : "09:30",
-        title: it.title,
-        cost: 0,
-        notes: it.description,
-        location: pkg.destinationId.charAt(0).toUpperCase() + pkg.destinationId.slice(1)
-      }))
-    });
-
-    // Also add a corresponding booking
-    addBooking({
-      tripId,
-      category: 'Hotels',
-      title: pkg.hotelDetails.name,
-      date: startDate.toISOString().split('T')[0],
+    const bookingData = {
+      id: `booking-${Date.now()}`,
+      reference: generateBookingReference('TR'),
+      category: 'Activities',
+      type: 'Tour Package',
+      title: `${pkg.name} (${pkg.duration})`,
+      destination: pkg.destinationId.charAt(0).toUpperCase() + pkg.destinationId.slice(1),
       location: pkg.destinationId.charAt(0).toUpperCase() + pkg.destinationId.slice(1),
-      price: pkg.price,
-      status: 'Confirmed'
-    });
+      date: formData.departDate,
+      endDate: endDate.toISOString().split('T')[0],
+      priceUSD: pkg.price * (Number(formData.travelersCount) || 1),
+      baseAmountINR: pricing.baseAmount,
+      totalAmountINR: pricing.totalAmountINR,
+      taxesAndFees: pricing.taxesAndFees,
+      platformFee: pricing.platformFee,
+      travelersCount: Number(formData.travelersCount) || 2,
+      travelerName: formData.fullName,
+      travelerEmail: formData.email,
+      travelerPhone: formData.phone,
+      specialRequests: formData.specialRequests,
+      isPackageTrip: true,
+      packageData: pkg,
+      image: pkg.image,
+      status: 'Pending Payment'
+    };
 
-    setSuccessModal(true);
+    // Save as pending booking and directly navigate to Payment Page
+    createPendingBooking(bookingData);
+    navigate('/payment', { state: { booking: bookingData } });
   };
 
   return (
@@ -80,7 +111,7 @@ export default function PackageDetails() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center space-x-1 text-slate-500 hover:text-slate-700 text-xs font-semibold py-2"
+          className="flex items-center space-x-1 text-slate-500 hover:text-slate-700 text-xs font-semibold py-2 cursor-pointer"
         >
           <ArrowLeft size={14} />
           <span>Back to Packages</span>
@@ -178,7 +209,7 @@ export default function PackageDetails() {
                   >
                     <button
                       onClick={() => setExpandedDay(isExpanded ? 0 : day.day)}
-                      className="w-full bg-slate-50/50 hover:bg-slate-50 px-5 py-4 flex items-center justify-between text-left transition-colors"
+                      className="w-full bg-slate-50/50 hover:bg-slate-50 px-5 py-4 flex items-center justify-between text-left transition-colors cursor-pointer"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-9 h-9 rounded-full bg-primary text-white font-heading font-bold text-xs flex items-center justify-center shadow-sm">
@@ -204,15 +235,18 @@ export default function PackageDetails() {
 
         </div>
 
-        {/* Right sidebar: Booking Details panel */}
+        {/* Right sidebar: Comprehensive Booking Form panel */}
         <div className="space-y-8">
           
-          {/* Reservation Card */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-lg space-y-6">
+          {/* Reservation & Booking Form Card */}
+          <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-lg space-y-6">
+            
+            {/* Package Pricing Header */}
             <div className="flex justify-between items-center pb-4 border-b border-slate-100">
               <div>
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Package Price</span>
-                <span className="text-3xl font-extrabold font-heading text-primary">${pkg.price}</span>
+                <span className="text-2xl sm:text-3xl font-extrabold font-heading text-primary">{formatINR(basePricePerPerson)}</span>
+                <span className="text-[11px] text-slate-400 font-medium block">/ person (approx. ${pkg.price})</span>
               </div>
               <div className="text-right">
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Duration</span>
@@ -220,36 +254,137 @@ export default function PackageDetails() {
               </div>
             </div>
 
-            <div className="space-y-3.5 text-xs text-slate-500">
+            {/* Inclusions summary */}
+            <div className="space-y-2 text-xs text-slate-500 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
               <div className="flex items-center justify-between font-semibold">
-                <span className="flex items-center"><Hotel size={14} className="text-slate-400 mr-2" /> Hotel Accommodation</span>
-                <span className="text-green-600">Included</span>
+                <span className="flex items-center"><Hotel size={13} className="text-slate-400 mr-2" /> Hotel Accommodation</span>
+                <span className="text-green-600 font-bold">Included</span>
               </div>
               <div className="flex items-center justify-between font-semibold">
-                <span className="flex items-center"><Coffee size={14} className="text-slate-400 mr-2" /> Daily Gourmet Breakfast</span>
-                <span className="text-green-600">Included</span>
+                <span className="flex items-center"><Coffee size={13} className="text-slate-400 mr-2" /> Daily Gourmet Breakfast</span>
+                <span className="text-green-600 font-bold">Included</span>
               </div>
               <div className="flex items-center justify-between font-semibold">
-                <span className="flex items-center"><Plane size={14} className="text-slate-400 mr-2" /> Internal Flights</span>
-                <span className={pkg.hasFlight ? 'text-green-600' : 'text-slate-400'}>{pkg.hasFlight ? 'Included' : 'Not Included'}</span>
-              </div>
-              <div className="flex items-center justify-between font-semibold">
-                <span className="flex items-center"><Compass size={14} className="text-slate-400 mr-2" /> Guided Tours & Entry</span>
-                <span className="text-green-600">Included</span>
+                <span className="flex items-center"><Compass size={13} className="text-slate-400 mr-2" /> Guided Tours & Entry</span>
+                <span className="text-green-600 font-bold">Included</span>
               </div>
             </div>
 
-            <button
-              onClick={handleAddToMyTrip}
-              className="w-full bg-accent hover:bg-accent-light text-primary-dark font-heading font-semibold py-3.5 px-4 rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-accent/10 transition-transform hover:-translate-y-0.5"
-            >
-              <Sparkles size={16} />
-              <span>Add to My Trip</span>
-            </button>
+            {/* The Booking Form */}
+            <form onSubmit={handleSubmitBooking} className="space-y-4">
+              <div className="border-t border-slate-100 pt-3">
+                <h4 className="text-xs font-bold font-heading text-slate-900 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <User size={14} className="text-primary" />
+                  <span>Traveler & Booking Details</span>
+                </h4>
+              </div>
 
-            <span className="text-[10px] text-slate-400 text-center block leading-relaxed max-w-[220px] mx-auto">
-              Add this package to your travel schedule to automatically build dynamic itineraries!
-            </span>
+              {/* Full Name */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-700 block">Full Name</label>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  placeholder="Primary Passenger Name"
+                  className={`w-full px-3.5 py-2 text-xs bg-slate-50 border rounded-xl focus:bg-white focus:outline-none transition-all ${
+                    formErrors.fullName ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-200 focus:border-primary'
+                  }`}
+                />
+                {formErrors.fullName && <p className="text-[10px] text-red-500 font-medium">{formErrors.fullName}</p>}
+              </div>
+
+              {/* Email & Phone */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-700 block">Email Address</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="email@example.com"
+                    className={`w-full px-3.5 py-2 text-xs bg-slate-50 border rounded-xl focus:bg-white focus:outline-none transition-all ${
+                      formErrors.email ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-200 focus:border-primary'
+                    }`}
+                  />
+                  {formErrors.email && <p className="text-[10px] text-red-500 font-medium">{formErrors.email}</p>}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-700 block">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="+91 98765 43210"
+                    className={`w-full px-3.5 py-2 text-xs bg-slate-50 border rounded-xl focus:bg-white focus:outline-none transition-all ${
+                      formErrors.phone ? 'border-red-400 ring-1 ring-red-400' : 'border-slate-200 focus:border-primary'
+                    }`}
+                  />
+                  {formErrors.phone && <p className="text-[10px] text-red-500 font-medium">{formErrors.phone}</p>}
+                </div>
+              </div>
+
+              {/* Travel Date & Travelers count */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-700 block">Travel Date</label>
+                  <input
+                    type="date"
+                    value={formData.departDate}
+                    onChange={(e) => setFormData({ ...formData, departDate: e.target.value })}
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-semibold text-slate-700 block">Travelers Count</label>
+                  <select
+                    value={formData.travelersCount}
+                    onChange={(e) => setFormData({ ...formData, travelersCount: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary transition-all cursor-pointer"
+                  >
+                    {[1, 2, 3, 4, 5, 6].map(num => (
+                      <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Price Calculation Summary */}
+              <div className="bg-stone-50 border border-stone-200/80 rounded-2xl p-3.5 space-y-1.5 text-xs text-slate-600">
+                <div className="flex justify-between">
+                  <span>Base Rate ({formData.travelersCount} pax):</span>
+                  <span className="font-semibold text-slate-900">{pricing.formattedBase}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>GST & Tourism Taxes (12%):</span>
+                  <span className="font-semibold text-slate-900">{pricing.formattedTaxes}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Platform Fee:</span>
+                  <span className="font-semibold text-slate-900">{pricing.formattedFee}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold text-sm text-slate-900">
+                  <span>Estimated Total:</span>
+                  <span className="text-primary font-extrabold text-base">{pricing.formattedTotal}</span>
+                </div>
+              </div>
+
+              {/* Submit Booking Button */}
+              <button
+                type="submit"
+                className="w-full bg-accent hover:bg-accent-light text-primary-dark font-heading font-extrabold py-3.5 px-4 rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-accent/15 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+              >
+                <Lock size={16} />
+                <span>Submit Booking & Pay</span>
+              </button>
+
+              <span className="text-[10px] text-slate-400 text-center block leading-relaxed max-w-[240px] mx-auto font-medium">
+                Instant redirect to secure Razorpay Test Mode Payment Page.
+              </span>
+            </form>
+
           </div>
 
           {/* Hotel Highlights */}
@@ -294,37 +429,6 @@ export default function PackageDetails() {
         </div>
 
       </section>
-
-      {/* Success Modal Overlay */}
-      {successModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-5 shadow-2xl border border-slate-100">
-            <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto shadow-sm">
-              <CheckCircle size={30} />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold font-heading text-slate-800">Trip Created Successfully!</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                We've added <strong>{pkg.name}</strong> to your upcoming schedule! Check it out in your My Trips dashboard.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <button
-                onClick={() => setSuccessModal(false)}
-                className="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-semibold text-xs transition-colors"
-              >
-                Close
-              </button>
-              <Link
-                to="/dashboard/my-trips"
-                className="py-2.5 bg-primary hover:bg-primary-light text-white text-center rounded-xl font-semibold text-xs transition-colors shadow-md"
-              >
-                Go to My Trips
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );
