@@ -495,7 +495,7 @@ export default function Hotels() {
                     <span>Submit Booking & Proceed to Payment</span>
                   </button>
                   <p className="text-[10px] text-slate-400 text-center mt-2 font-medium">
-                    You will be directly redirected to the Razorpay Test Payment Page.
+                    You will be directly redirected to the secure reservation checkout.
                   </p>
                 </div>
               </form>

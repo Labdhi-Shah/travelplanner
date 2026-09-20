@@ -20,7 +20,6 @@ export default function Flights() {
   const [cabinClass, setCabinClass] = useState('Economy');
   const [guests, setGuests] = useState('2');
   const [searched, setSearched] = useState(false);
-
   // Selected Flight for Booking Form modal
   const [selectedFlight, setSelectedFlight] = useState(null);
   const [formData, setFormData] = useState({
@@ -229,7 +228,8 @@ export default function Flights() {
             return (
               <motion.div
                 key={flight.id}
-                className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6"
+                onClick={() => navigate(`/flights/${flight.id}`, { state: { flight, cabinClass, guests, departDate } })}
+                className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-6 cursor-pointer group"
                 initial={{ opacity: 0, y: 25, scale: 0.98 }}
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: false, amount: 0.2 }}
@@ -238,12 +238,12 @@ export default function Flights() {
               >
                 {/* Left details: Logo, Airline, stops */}
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-primary font-bold shadow-inner shrink-0">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-primary font-bold shadow-inner shrink-0 group-hover:scale-105 transition-transform">
                     {flight.airline.charAt(0)}
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h4 className="font-heading font-bold text-sm text-slate-850">{flight.airline}</h4>
+                      <h4 className="font-heading font-bold text-sm text-slate-850 group-hover:text-primary transition-colors">{flight.airline}</h4>
                       <span className="text-[9px] bg-slate-100 text-slate-400 font-semibold px-2 py-0.5 rounded">
                         {flight.flightNumber}
                       </span>
@@ -293,10 +293,13 @@ export default function Flights() {
                   </div>
                   
                   <button
-                    onClick={() => handleOpenBookingModal(flight)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/flights/${flight.id}`, { state: { flight, cabinClass, guests, departDate } });
+                    }}
                     className="bg-primary hover:bg-primary-light text-white font-heading font-bold text-xs px-5 py-2.5 rounded-xl shadow-sm transition-all hover:scale-105 cursor-pointer flex items-center gap-1.5"
                   >
-                    <span>Book Flight</span>
+                    <span>View Details / Book</span>
                     <ArrowRight size={13} />
                   </button>
                 </div>
@@ -429,7 +432,7 @@ export default function Flights() {
                     <span>Submit Booking & Proceed to Payment</span>
                   </button>
                   <p className="text-[10px] text-slate-400 text-center mt-2 font-medium">
-                    You will be directly redirected to the Razorpay Test Payment Page.
+                    You will be directly redirected to the secure reservation checkout.
                   </p>
                 </div>
               </form>

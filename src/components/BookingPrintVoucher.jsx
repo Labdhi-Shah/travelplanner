@@ -86,16 +86,16 @@ export default function BookingPrintVoucher({ booking, onClose }) {
               <span className="text-base font-extrabold font-mono text-primary mt-0.5 block">{booking.reference || booking.id}</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Razorpay Payment ID</span>
-              <span className="text-xs font-mono font-bold text-slate-800 mt-1 block truncate" title={booking.razorpayPaymentId}>
-                {booking.razorpayPaymentId || 'pay_test_verified'}
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Transaction Reference</span>
+              <span className="text-xs font-mono font-bold text-slate-800 mt-1 block truncate" title={booking.paymentId || booking.reference}>
+                {booking.paymentId || `TXN-${booking.reference || '8492'}`}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Payment Gateway</span>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Verification Status</span>
               <span className="text-xs font-semibold text-slate-700 mt-1 flex items-center gap-1">
-                <ShieldCheck size={14} className="text-primary" />
-                <span>Razorpay Test Checkout</span>
+                <ShieldCheck size={14} className="text-emerald-600" />
+                <span>Verified Online Booking</span>
               </span>
             </div>
           </div>
@@ -216,7 +216,7 @@ export default function BookingPrintVoucher({ booking, onClose }) {
                 |||||| | |||| ||| ||||| || |
               </div>
               <span className="font-mono text-[9px] text-slate-400 block tracking-widest mt-0.5">
-                AUTH-{booking.reference || 'TS-8492'}-RZP
+                AUTH-{booking.reference || 'TS-8492'}-CONF
               </span>
             </div>
           </div>

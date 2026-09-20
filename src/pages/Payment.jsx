@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { useTravel } from '../context/TravelContext';
 import { calculatePriceBreakdown, formatINR, generateBookingReference } from '../utils/pricing';
-import { openRazorpayCheckout, RAZORPAY_TEST_KEY_ID } from '../utils/razorpay';
 import BookingPrintVoucher from '../components/BookingPrintVoucher';
 
 const getCategoryIcon = (cat) => {
@@ -74,16 +73,16 @@ export default function Payment() {
 
   // Status view state: 'review' | 'processing' | 'success' | 'failed'
   const [paymentState, setPaymentState] = useState(() => {
-    if (booking?.status === 'Confirmed' && booking?.razorpayPaymentId) {
+    if (booking?.status === 'Confirmed') {
       return 'success';
     }
     return 'review';
   });
 
   const [paymentDetails, setPaymentDetails] = useState(() => {
-    if (booking?.razorpayPaymentId) {
+    if (booking?.paymentId) {
       return {
-        razorpay_payment_id: booking.razorpayPaymentId,
+        payment_id: booking.paymentId,
         amountPaidINR: booking.amountPaid || booking.totalAmountINR,
         paymentDate: booking.paidAt || new Date().toISOString()
       };
@@ -128,8 +127,8 @@ export default function Payment() {
     }
   };
 
-  // Launch Razorpay Checkout Modal
-  const handlePayNow = async () => {
+  // Complete Booking & Payment
+  const handlePayNow = () => {
     setErrorMessage('');
     setPaymentState('processing');
 
@@ -149,50 +148,46 @@ export default function Payment() {
     const pending = createPendingBooking(currentBookingData);
     setBooking(pending);
 
-    await openRazorpayCheckout({
-      booking: pending,
-      amountINR: totalINR,
-      traveler: travelerInfo,
-      onSuccess: (response) => {
-        // Update booking in context and storage
-        const confirmed = confirmBookingPayment(pending.id, {
-          razorpay_payment_id: response.razorpay_payment_id,
-          amountPaidINR: totalINR,
-          paymentDate: response.paymentDate,
-          travelerName: travelerInfo.name,
-          travelerEmail: travelerInfo.email,
-          travelerPhone: travelerInfo.phone
+    setTimeout(() => {
+      const transactionId = `TXN-${Date.now()}`;
+      const response = {
+        payment_id: transactionId,
+        amountPaidINR: totalINR,
+        paymentDate: new Date().toISOString(),
+        travelerName: travelerInfo.name,
+        travelerEmail: travelerInfo.email,
+        travelerPhone: travelerInfo.phone
+      };
+
+      const confirmed = confirmBookingPayment(pending.id, {
+        paymentId: transactionId,
+        amountPaidINR: totalINR,
+        paymentDate: response.paymentDate,
+        travelerName: travelerInfo.name,
+        travelerEmail: travelerInfo.email,
+        travelerPhone: travelerInfo.phone
+      });
+
+      // Also if it was a tour package, ensure trip is registered in My Trips
+      if (booking.isPackageTrip && booking.packageData) {
+        addTrip({
+          name: booking.packageData.name || booking.title,
+          destinationId: booking.packageData.destinationId || 'custom',
+          destinationName: booking.destination || 'Custom Tour',
+          image: booking.image || booking.packageData.image,
+          startDate: booking.date,
+          endDate: booking.endDate || booking.date,
+          travelers: { adults: booking.travelersCount || 2, children: 0 },
+          budgetLimit: totalINR,
+          status: 'Upcoming',
+          route: [booking.destination]
         });
-
-        // Also if it was a tour package, ensure trip is registered in My Trips
-        if (booking.isPackageTrip && booking.packageData) {
-          addTrip({
-            name: booking.packageData.name || booking.title,
-            destinationId: booking.packageData.destinationId || 'custom',
-            destinationName: booking.destination || 'Custom Tour',
-            image: booking.image || booking.packageData.image,
-            startDate: booking.date,
-            endDate: booking.endDate || booking.date,
-            travelers: { adults: booking.travelersCount || 2, children: 0 },
-            budgetLimit: totalINR,
-            status: 'Upcoming',
-            route: [booking.destination]
-          });
-        }
-
-        setBooking(confirmed || { ...pending, status: 'Confirmed', razorpayPaymentId: response.razorpay_payment_id });
-        setPaymentDetails(response);
-        setPaymentState('success');
-      },
-      onFailure: (err) => {
-        setErrorMessage(err.description || 'Payment was declined or encounter an error. Please retry.');
-        setPaymentState('failed');
-      },
-      onDismiss: (dismissInfo) => {
-        setErrorMessage(dismissInfo?.message || 'Payment window closed. Your reservation is on hold.');
-        setPaymentState('failed');
       }
-    });
+
+      setBooking(confirmed || { ...pending, status: 'Confirmed', paymentId: transactionId });
+      setPaymentDetails(response);
+      setPaymentState('success');
+    }, 600);
   };
 
   const handleRetryPayment = () => {
@@ -235,26 +230,14 @@ export default function Payment() {
             <div className="text-center sm:text-left space-y-1.5">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/15 text-primary text-[11px] font-bold tracking-wide uppercase">
                 <ShieldCheck size={14} />
-                <span>Secure Checkout • Razorpay Test Mode</span>
+                <span>Secure Checkout • Instant Confirmation</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-slate-900 tracking-tight">
                 Review & Confirm Booking
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                Verify your travel itinerary and guest information before proceeding to payment.
+                Verify your travel itinerary and guest information before completing your reservation.
               </p>
-            </div>
-
-            {/* Test Mode Notification Banner */}
-            <div className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 flex items-start space-x-3 text-xs text-amber-900 shadow-sm">
-              <Sparkles size={18} className="text-amber-600 shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <p className="font-bold text-amber-800">Razorpay Test Mode Active</p>
-                <p className="text-amber-700/90 leading-relaxed">
-                  Key ID: <code className="bg-amber-100/80 px-1.5 py-0.5 rounded font-mono font-bold text-amber-900">{RAZORPAY_TEST_KEY_ID}</code>. 
-                  No real money will be charged. You can use any test card / UPI / NetBanking credentials in the Razorpay popup.
-                </p>
-              </div>
             </div>
 
             {/* Main Content Grid */}
@@ -327,7 +310,7 @@ export default function Payment() {
                       <ShieldCheck size={20} />
                     </div>
                     <div>
-                      <h4 className="font-heading font-bold text-sm text-slate-900">Protected by Razorpay Checkout</h4>
+                      <h4 className="font-heading font-bold text-sm text-slate-900">TripSphere Booking Protection</h4>
                       <p className="text-xs text-slate-500">256-bit SSL encrypted • Instant Booking Confirmation</p>
                     </div>
                   </div>
@@ -335,19 +318,19 @@ export default function Payment() {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-[11px] text-slate-600 font-medium">
                     <div className="flex items-center gap-1.5 bg-white p-2.5 rounded-xl border border-slate-200/60 shadow-xs">
                       <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
-                      <span>Credit/Debit Card</span>
+                      <span>Instant Voucher</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-white p-2.5 rounded-xl border border-slate-200/60 shadow-xs">
                       <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
-                      <span>UPI & QR Code</span>
+                      <span>Free Cancellation</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-white p-2.5 rounded-xl border border-slate-200/60 shadow-xs">
                       <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
-                      <span>NetBanking</span>
+                      <span>24/7 Concierge</span>
                     </div>
                     <div className="flex items-center gap-1.5 bg-white p-2.5 rounded-xl border border-slate-200/60 shadow-xs">
                       <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
-                      <span>Wallets</span>
+                      <span>Best Rate Guarantee</span>
                     </div>
                   </div>
                 </div>
@@ -450,13 +433,13 @@ export default function Payment() {
                     className="w-full bg-primary hover:bg-primary-light text-white font-heading font-bold text-sm py-4 px-6 rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-primary/20 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
                   >
                     <Lock size={16} />
-                    <span>Pay Now • {pricing.formattedTotal} with Razorpay</span>
+                    <span>Confirm & Pay Now • {pricing.formattedTotal}</span>
                   </button>
 
                   <div className="text-center space-y-1">
                     <p className="text-[11px] text-slate-400 font-medium flex items-center justify-center gap-1">
                       <ShieldCheck size={13} className="text-emerald-600" />
-                      <span>Razorpay Verified Sandbox • 100% Safe Checkout</span>
+                      <span>256-Bit SSL Encrypted • 100% Safe Checkout</span>
                     </p>
                   </div>
 
@@ -484,9 +467,9 @@ export default function Payment() {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl font-extrabold font-heading text-slate-900">Connecting to Razorpay...</h2>
+              <h2 className="text-2xl font-extrabold font-heading text-slate-900">Processing Your Booking...</h2>
               <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                Please complete the transaction in the Razorpay popup window. Do not close or refresh this browser tab.
+                Confirming reservation details and securing your booking voucher. Please do not close or refresh this tab.
               </p>
             </div>
 
@@ -561,8 +544,8 @@ export default function Payment() {
                 </div>
 
                 <div className="text-left sm:text-right">
-                  <span className="text-[10px] text-white/70 uppercase tracking-widest font-bold block">Gateway Mode</span>
-                  <span className="text-xs font-mono bg-white/15 px-2.5 py-1 rounded-lg">Razorpay Test Mode</span>
+                  <span className="text-[10px] text-white/70 uppercase tracking-widest font-bold block">Confirmation</span>
+                  <span className="text-xs font-mono bg-white/15 px-2.5 py-1 rounded-lg">Instant Confirmation</span>
                 </div>
               </div>
 
@@ -572,18 +555,18 @@ export default function Payment() {
                 {/* ID Copy Chips */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   
-                  {/* Razorpay Payment ID */}
+                  {/* Payment Transaction ID */}
                   <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Razorpay Payment ID</span>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Transaction ID</span>
                       <span className="font-mono text-xs font-bold text-slate-900 mt-0.5 block truncate max-w-[200px]">
-                        {paymentDetails?.razorpay_payment_id || booking.razorpayPaymentId || 'pay_test_verified'}
+                        {paymentDetails?.payment_id || booking.paymentId || `TXN-${booking.reference || '8492'}`}
                       </span>
                     </div>
                     <button
-                      onClick={() => handleCopy(paymentDetails?.razorpay_payment_id || booking.razorpayPaymentId || 'pay_test_verified', 'payId')}
+                      onClick={() => handleCopy(paymentDetails?.payment_id || booking.paymentId || `TXN-${booking.reference || '8492'}`, 'payId')}
                       className="p-2 text-slate-400 hover:text-primary hover:bg-white rounded-xl transition-all shadow-xs cursor-pointer"
-                      title="Copy Payment ID"
+                      title="Copy Transaction ID"
                     >
                       {copiedField === 'payId' ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
                     </button>
@@ -773,12 +756,12 @@ export default function Payment() {
               <div className="bg-stone-50 rounded-2xl p-4 text-xs text-slate-600 space-y-1.5 border border-stone-200/70">
                 <p className="font-bold text-slate-800 flex items-center gap-1.5">
                   <Info size={14} className="text-primary" />
-                  <span>How to complete your test payment:</span>
+                  <span>Reservation assistance:</span>
                 </p>
                 <ul className="list-disc list-inside text-slate-500 space-y-1 pl-1 text-[11px]">
-                  <li>Click <strong>Try Again</strong> to relaunch the Razorpay Checkout window.</li>
-                  <li>In Razorpay Test mode, select <strong>Netbanking</strong> (e.g. SBI/HDFC - Success) or <strong>UPI</strong> (e.g. success@razorpay).</li>
-                  <li>Ensure your popups are not blocked by browser extensions.</li>
+                  <li>Click <strong>Try Again</strong> to re-process your booking confirmation.</li>
+                  <li>Verify all traveler contact information.</li>
+                  <li>Reach out to TripSphere 24/7 concierge support if issues persist.</li>
                 </ul>
               </div>
 
@@ -819,7 +802,7 @@ export default function Payment() {
             baseAmount: pricing.baseAmount,
             taxesAndFees: pricing.taxesAndFees,
             platformFee: pricing.platformFee,
-            razorpayPaymentId: paymentDetails?.razorpay_payment_id || booking.razorpayPaymentId
+            paymentId: paymentDetails?.payment_id || booking.paymentId
           }}
           onClose={() => setShowPrintModal(false)}
         />

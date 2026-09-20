@@ -66,3 +66,97 @@ h1, h2, h3, h4, h5, h6 {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ========================================================================= */
+/* CUSTOM AIRPLANE CURSOR STYLES (Desktop only)                              */
+/* ========================================================================= */
+@media (pointer: fine) and (min-width: 768px) {
+  body.custom-cursor-active,
+  body.custom-cursor-active a,
+  body.custom-cursor-active button,
+  body.custom-cursor-active [role="button"],
+  body.custom-cursor-active select,
+  body.custom-cursor-active label {
+    cursor: none !important;
+  }
+
+  /* Keep standard text caret for text inputs and textareas */
+  body.custom-cursor-active input[type="text"],
+  body.custom-cursor-active input[type="email"],
+  body.custom-cursor-active input[type="password"],
+  body.custom-cursor-active input[type="tel"],
+  body.custom-cursor-active input[type="number"],
+  body.custom-cursor-active input[type="search"],
+  body.custom-cursor-active textarea {
+    cursor: text !important;
+  }
+}
+
+/* ========================================================================= */
+/* SUBTLE TRAVEL-THEMED MICRO-ANIMATIONS                                    */
+/* ========================================================================= */
+
+/* 1. Subtle Floating Keyframes for Travel Badges & Icons */
+@keyframes travel-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3.5px);
+  }
+}
+
+@keyframes travel-pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(207, 168, 100, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(207, 168, 100, 0);
+  }
+}
+
+.animate-travel-float {
+  animation: travel-float 4s ease-in-out infinite;
+}
+
+/* 2. Button Specular Sheen & Tactile Micro-Lift */
+button:not(:disabled),
+a[role="button"],
+.btn-travel {
+  position: relative;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), 
+              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1), 
+              filter 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+button:hover:not(:disabled),
+a[role="button"]:hover {
+  transform: translateY(-2px);
+}
+
+button:active:not(:disabled),
+a[role="button"]:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+/* 3. Card Floating Travel Elevation */
+.travel-card {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), 
+              box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.travel-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 25px -5px rgba(7, 45, 48, 0.12), 
+              0 8px 10px -6px rgba(7, 45, 48, 0.08);
+}
+
+/* 4. Smooth Image Scale on Hover */
+.travel-img-zoom {
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.travel-img-zoom:hover {
+  transform: scale(1.06);
+}
+

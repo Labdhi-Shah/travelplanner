@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { TravelProvider } from './context/TravelContext';
+import AirplaneCursor from './components/AirplaneCursor';
 
 // Layout wrappers
 import PublicLayout from './layouts/PublicLayout';
@@ -15,6 +16,7 @@ import Packages from './pages/Packages';
 import PackageDetails from './pages/PackageDetails';
 import Hotels from './pages/Hotels';
 import Flights from './pages/Flights';
+import FlightDetails from './pages/FlightDetails';
 import Experiences from './pages/Experiences';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
@@ -48,6 +50,7 @@ export default function App() {
           <Route path="/packages/:id" element={<PackageDetails />} />
           <Route path="/hotels" element={<Hotels />} />
           <Route path="/flights" element={<Flights />} />
+          <Route path="/flights/:id" element={<FlightDetails />} />
           <Route path="/experiences" element={<Experiences />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
@@ -70,6 +73,7 @@ export default function App() {
           <Route path="trip/:id" element={<TripDashboard />} />
         </Route>
       </Routes>
+      <AirplaneCursor />
     </TravelProvider>
   );
 }

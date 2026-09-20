@@ -48,7 +48,7 @@ export default function Bookings() {
             Confirmed Bookings & Receipts
           </h2>
           <span className="text-xs text-slate-400 font-medium">
-            Review confirmations, manage reservations, and download official Razorpay payment vouchers.
+            Review confirmations, manage reservations, and download official booking vouchers.
           </span>
         </div>
 
@@ -106,10 +106,10 @@ export default function Bookings() {
                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
                         {book.category || book.type} Confirmation
                       </span>
-                      {book.razorpayPaymentId && (
+                      {book.paymentId && (
                         <span className="inline-flex items-center gap-1 text-[9px] bg-emerald-50 text-emerald-700 font-mono font-bold px-2 py-0.5 rounded-md border border-emerald-100">
                           <ShieldCheck size={10} className="text-emerald-600" />
-                          <span>{book.razorpayPaymentId}</span>
+                          <span>{book.paymentId}</span>
                         </span>
                       )}
                     </div>
@@ -155,7 +155,7 @@ export default function Bookings() {
                         onClick={() => handleResumePayment(book)}
                         className="px-3 py-1.5 bg-primary hover:bg-primary-light text-white text-[11px] font-heading font-bold rounded-xl shadow-xs transition-all flex items-center gap-1 cursor-pointer"
                       >
-                        <span>Pay with Razorpay</span>
+                        <span>Complete Payment</span>
                         <ArrowRight size={12} />
                       </button>
                     )}
@@ -193,7 +193,7 @@ export default function Bookings() {
           <CreditCard size={36} className="text-slate-300 mb-3" />
           <h4 className="font-heading font-bold text-slate-850">No Booking Confirmations Listed</h4>
           <p className="text-slate-400 text-xs mt-1.5 max-w-xs leading-relaxed">
-            Book flight tickets, boutique hotel stays, or vacation packages to view confirmations and Razorpay receipts here.
+            Book flight tickets, boutique hotel stays, or vacation packages to view confirmations and booking receipts here.
           </p>
         </div>
       )}

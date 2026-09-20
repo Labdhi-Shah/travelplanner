@@ -381,7 +381,7 @@ export default function PackageDetails() {
               </button>
 
               <span className="text-[10px] text-slate-400 text-center block leading-relaxed max-w-[240px] mx-auto font-medium">
-                Instant redirect to secure Razorpay Test Mode Payment Page.
+                Instant redirect to secure booking checkout.
               </span>
             </form>
 

@@ -1,30 +1,52 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, UserPlus } from 'lucide-react';
+import { Mail, Lock, User, UserPlus, Phone, MapPin, Globe, Loader2 } from 'lucide-react';
 import { useTravel } from '../context/TravelContext';
 
 export default function Register() {
   const navigate = useNavigate();
   const { registerUser } = useTravel();
 
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    city: '',
+    country: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
+    if (loading) return;
+    setErrorMsg(null);
+
+    if (formData.password !== formData.confirmPassword) {
       setErrorMsg('Passwords do not match.');
       return;
     }
 
-    if (fullName && email && password) {
-      registerUser(fullName, email, password);
-      navigate('/dashboard');
-    } else {
-      setErrorMsg('Please fill in all required fields.');
+    setLoading(true);
+    try {
+      const res = await registerUser(formData);
+      if (res && res.success) {
+        localStorage.setItem('ts_saved_email', (formData.email || '').trim());
+        navigate('/dashboard');
+      } else {
+        setErrorMsg(res?.message || 'Registration failed. Please check your information.');
+      }
+    } catch (err) {
+      setErrorMsg(err.message || 'An unexpected error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -49,18 +71,36 @@ export default function Register() {
 
         {/* Register Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-              <User size={12} className="mr-1 text-slate-400" /> Full Name
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Emily Watson"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                <User size={12} className="mr-1 text-slate-400" /> First Name
+              </label>
+              <input
+                type="text"
+                required
+                disabled={loading}
+                placeholder="e.g. Emily"
+                value={formData.firstName}
+                onChange={(e) => handleChange('firstName', e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
+
+            <div className="flex flex-col space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                <User size={12} className="mr-1 text-slate-400" /> Last Name
+              </label>
+              <input
+                type="text"
+                required
+                disabled={loading}
+                placeholder="e.g. Watson"
+                value={formData.lastName}
+                onChange={(e) => handleChange('lastName', e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
           </div>
 
           <div className="flex flex-col space-y-1.5">
@@ -70,48 +110,110 @@ export default function Register() {
             <input
               type="email"
               required
+              disabled={loading}
               placeholder="e.g. emily@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors"
+              value={formData.email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
 
           <div className="flex flex-col space-y-1.5">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-              <Lock size={12} className="mr-1 text-slate-400" /> Password
+              <Phone size={12} className="mr-1 text-slate-400" /> Phone Number
             </label>
             <input
-              type="password"
+              type="tel"
               required
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors"
+              disabled={loading}
+              placeholder="e.g. +1 (555) 012-3456"
+              value={formData.phoneNumber}
+              onChange={(e) => handleChange('phoneNumber', e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             />
           </div>
 
-          <div className="flex flex-col space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
-              <Lock size={12} className="mr-1 text-slate-400" /> Confirm Password
-            </label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                <MapPin size={12} className="mr-1 text-slate-400" /> City
+              </label>
+              <input
+                type="text"
+                required
+                disabled={loading}
+                placeholder="e.g. New York"
+                value={formData.city}
+                onChange={(e) => handleChange('city', e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
+
+            <div className="flex flex-col space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                <Globe size={12} className="mr-1 text-slate-400" /> Country
+              </label>
+              <input
+                type="text"
+                required
+                disabled={loading}
+                placeholder="e.g. United States"
+                value={formData.country}
+                onChange={(e) => handleChange('country', e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                <Lock size={12} className="mr-1 text-slate-400" /> Password
+              </label>
+              <input
+                type="password"
+                required
+                disabled={loading}
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) => handleChange('password', e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
+
+            <div className="flex flex-col space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center">
+                <Lock size={12} className="mr-1 text-slate-400" /> Confirm Password
+              </label>
+              <input
+                type="password"
+                required
+                disabled={loading}
+                placeholder="••••••••"
+                value={formData.confirmPassword}
+                onChange={(e) => handleChange('confirmPassword', e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:border-primary rounded-xl px-3.5 py-2.5 text-xs text-slate-700 outline-none transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              />
+            </div>
           </div>
 
           {/* Submit */}
           <button
             type="submit"
-            className="w-full bg-primary hover:bg-primary-light text-white font-heading font-semibold py-3 px-4 rounded-2xl flex items-center justify-center space-x-2 shadow-lg transition-transform hover:-translate-y-0.5"
+            disabled={loading}
+            className="w-full bg-primary hover:bg-primary-light text-white font-heading font-semibold py-3 px-4 rounded-2xl flex items-center justify-center space-x-2 shadow-lg transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
           >
-            <UserPlus size={14} />
-            <span>Register Account</span>
+            {loading ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                <span>Registering Account...</span>
+              </>
+            ) : (
+              <>
+                <UserPlus size={14} />
+                <span>Register Account</span>
+              </>
+            )}
           </button>
         </form>
 

@@ -70,34 +70,151 @@ export const TravelProvider = ({ children }) => {
   }, [favorites]);
 
   // Auth Operations
-  const loginUser = (email, password) => {
-    if (email === 'travel@123.com' && password === 'Travel@123') {
-      setIsLoggedIn(true);
-      setUser(prev => ({
-        ...prev,
-        email: email,
-        name: prev?.name || 'Traveler'
-      }));
-      return { success: true };
+  const API_BASE_URL = 'https://hackthon-dgcm.onrender.com/api/auth';
+
+  const syncLoginState = (loginData, cleanEmail) => {
+    setIsLoggedIn(true);
+    const backendUser = loginData?.data?.user || {};
+    const token = loginData?.data?.token;
+    if (token) {
+      localStorage.setItem('ts_token', token);
     }
-    return { success: false, message: 'Invalid email or password' };
+    const fullName = `${backendUser.firstName || ''} ${backendUser.lastName || ''}`.trim() || backendUser.email || cleanEmail || 'Traveler';
+    setUser(prev => ({
+      ...prev,
+      id: backendUser.id || prev?.id,
+      firstName: backendUser.firstName || '',
+      lastName: backendUser.lastName || '',
+      name: fullName,
+      email: backendUser.email || cleanEmail,
+      phone: backendUser.phoneNumber || prev?.phone || '',
+      city: backendUser.city || prev?.city || '',
+      country: backendUser.country || prev?.country || '',
+      avatar: prev?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80",
+      preferences: prev?.preferences || ["Adventure", "Culture"],
+      notifications: prev?.notifications || { emailAlerts: true, marketing: false, tripUpdates: true }
+    }));
   };
 
-  const registerUser = (fullName, email, password) => {
-    setIsLoggedIn(true);
-    setUser({
-      name: fullName,
-      email: email,
-      phone: "+1 (555) 012-3456",
-      country: "United States",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80",
-      preferences: ["Adventure", "Culture"],
-      notifications: { emailAlerts: true, marketing: false, tripUpdates: true }
-    });
-    return { success: true };
+  const loginUser = async (email, password) => {
+    const cleanEmail = (email || '').trim();
+    try {
+      const res = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password })
+      });
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+      if (res.ok && data?.success) {
+        syncLoginState(data, cleanEmail);
+        return { success: true, data };
+      }
+
+      const errorMsg = data?.message || (res.statusText ? `Error ${res.status}: ${res.statusText}` : `Invalid email or password`);
+      return { success: false, message: errorMsg };
+    } catch (err) {
+      return { success: false, message: err.message || 'Unable to connect to server. Please check your internet connection.' };
+    }
+  };
+
+  const registerUser = async (signupData) => {
+    try {
+      const payload = typeof signupData === 'object' && signupData !== null
+        ? {
+            firstName: (signupData.firstName || '').trim(),
+            lastName: (signupData.lastName || '').trim(),
+            email: (signupData.email || '').trim(),
+            phoneNumber: (signupData.phoneNumber || '').trim(),
+            city: (signupData.city || '').trim(),
+            country: (signupData.country || '').trim(),
+            password: signupData.password || '',
+            confirmPassword: signupData.confirmPassword || ''
+          }
+        : {
+            firstName: 'Traveler',
+            lastName: '',
+            email: String(signupData || '').trim(),
+            phoneNumber: '+1 555-012-3456',
+            city: 'New York',
+            country: 'United States',
+            password: '',
+            confirmPassword: ''
+          };
+
+      const res = await fetch(`${API_BASE_URL}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+      if (res.ok && data?.success) {
+        setIsLoggedIn(true);
+        const backendUser = data.data?.user || {};
+        const token = data.data?.token;
+        if (token) {
+          localStorage.setItem('ts_token', token);
+        }
+        const fullName = `${backendUser.firstName || payload.firstName || ''} ${backendUser.lastName || payload.lastName || ''}`.trim() || backendUser.email || 'Traveler';
+        setUser(prev => ({
+          ...prev,
+          id: backendUser.id || prev?.id,
+          firstName: backendUser.firstName || payload.firstName || '',
+          lastName: backendUser.lastName || payload.lastName || '',
+          name: fullName,
+          email: backendUser.email || payload.email,
+          phone: backendUser.phoneNumber || payload.phoneNumber || "+1 (555) 012-3456",
+          city: backendUser.city || payload.city || "",
+          country: backendUser.country || payload.country || "United States",
+          avatar: prev?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80",
+          preferences: prev?.preferences || ["Adventure", "Culture"],
+          notifications: prev?.notifications || { emailAlerts: true, marketing: false, tripUpdates: true }
+        }));
+        return { success: true, data };
+      }
+      const errorMsg = data?.message || (res.statusText ? `Error ${res.status}: ${res.statusText}` : `Registration failed with status ${res.status}`);
+      return { success: false, message: errorMsg };
+    } catch (err) {
+      return { success: false, message: err.message || 'Unable to connect to server. Please check your internet connection.' };
+    }
+  };
+
+  const forgotPassword = async (email) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: (email || '').trim() })
+      });
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = null;
+      }
+      if (res.ok && data?.success) {
+        return { success: true, message: data.message };
+      }
+      const errorMsg = data?.message || (res.statusText ? `Error ${res.status}: ${res.statusText}` : `Failed to send reset instructions (${res.status})`);
+      return { success: false, message: errorMsg };
+    } catch (err) {
+      return { success: false, message: err.message || 'Unable to connect to server. Please check your internet connection.' };
+    }
   };
 
   const logoutUser = () => {
+    localStorage.removeItem('ts_token');
+    localStorage.removeItem('ts_user');
+    setUser(mockUser);
     setIsLoggedIn(false);
   };
 
@@ -361,10 +478,10 @@ export const TravelProvider = ({ children }) => {
           ...book,
           status: 'Confirmed',
           paymentStatus: 'Success',
-          razorpayPaymentId: paymentDetails.razorpay_payment_id || `pay_mock_${Date.now()}`,
+          paymentId: paymentDetails.paymentId || paymentDetails.payment_id || `PAY-${Date.now()}`,
           amountPaid: paymentDetails.amountPaidINR || book.totalAmountINR || book.price,
           paidAt: paymentDetails.paymentDate || new Date().toISOString(),
-          paymentMethod: 'Razorpay Checkout (Test Mode)',
+          paymentMethod: 'Instant Online Confirmation',
           ...paymentDetails
         };
         return updatedBooking;
@@ -381,7 +498,7 @@ export const TravelProvider = ({ children }) => {
             ...b,
             status: 'Confirmed',
             paymentStatus: 'Success',
-            razorpayPaymentId: paymentDetails.razorpay_payment_id,
+            paymentId: paymentDetails.paymentId || paymentDetails.payment_id || `PAY-${Date.now()}`,
             amountPaid: paymentDetails.amountPaidINR || b.totalAmountINR || b.price
           } : b)
         };
@@ -425,8 +542,10 @@ export const TravelProvider = ({ children }) => {
       favorites,
       currentCheckout,
       setCurrentCheckout,
+      syncLoginState,
       loginUser,
       registerUser,
+      forgotPassword,
       logoutUser,
       updateProfile,
       addTrip,
