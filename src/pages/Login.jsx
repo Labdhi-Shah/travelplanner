@@ -65,7 +65,7 @@ export default function Login() {
           localStorage.removeItem('ts_saved_email');
         }
 
-        const destination = location.state?.from?.pathname || location.state?.redirectTo || '/dashboard';
+        const destination = location.state?.from?.pathname || location.state?.redirectTo || '/';
         navigate(destination, { replace: true });
       } else {
         const errorMsg = data?.message || (response.statusText ? `Error ${response.status}: ${response.statusText}` : 'Invalid email or password');
@@ -85,7 +85,7 @@ export default function Login() {
     try {
       const res = await loginUser('travel@123.com', 'Travel@123');
       if (res && res.success) {
-        const destination = location.state?.from?.pathname || location.state?.redirectTo || '/dashboard';
+        const destination = location.state?.from?.pathname || location.state?.redirectTo || '/';
         navigate(destination, { replace: true });
       } else {
         setErrorMsg(res?.message || 'Invalid email or password');

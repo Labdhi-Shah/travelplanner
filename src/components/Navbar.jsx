@@ -63,41 +63,32 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 text-white group">
-            <motion.div 
-              whileHover={{ scale: 1.08, rotate: 5 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-primary-dark font-extrabold text-xl shadow-lg transition-transform"
-            >
+          <Link to="/" className="flex items-center space-x-2.5 text-white group shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#CFA864] flex items-center justify-center text-[#072D30] font-heading font-extrabold text-xl shadow-md transition-transform group-hover:scale-105">
               T
-            </motion.div>
-            <span className="font-heading font-bold text-2xl tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-accent-light">
+            </div>
+            <span className="font-heading font-bold text-2xl tracking-wide text-white">
               TripSphere
             </span>
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden lg:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-7 xl:space-x-8">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path;
               return (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`relative font-heading text-base font-bold tracking-wide transition-colors duration-200 hover:text-accent py-1 ${
-                    isActive ? 'text-accent' : 'text-slate-200'
+                  className={`relative text-[15px] font-semibold tracking-normal transition-colors duration-200 py-1 ${
+                    isActive ? 'text-[#E5B869]' : 'text-white/90 hover:text-white'
                   }`}
                 >
-                  <motion.span
-                    whileHover={{ y: -1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {link.name}
-                  </motion.span>
+                  <span>{link.name}</span>
                   {isActive && (
                     <motion.span
                       layoutId="navbar-active-underline"
-                      className="absolute bottom-[-4px] left-0 w-full h-[2.5px] bg-accent rounded-full shadow-sm"
+                      className="absolute bottom-[-6px] left-0 w-full h-[2.5px] bg-[#E5B869] rounded-full"
                       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -106,21 +97,24 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Desktop Right Side CTA/User Menu */}
-          <div className="hidden lg:flex items-center space-x-4">
+          {/* Desktop Right Side User Profile / Auth */}
+          <div className="hidden lg:flex items-center space-x-4 shrink-0">
             {isLoggedIn ? (
               <div className="relative">
                 <button
+                  type="button"
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center space-x-2 text-white hover:text-accent focus:outline-none transition-colors cursor-pointer"
+                  className="flex items-center space-x-2.5 text-white hover:text-[#E5B869] focus:outline-none transition-colors cursor-pointer group"
                 >
                   <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-9 h-9 rounded-full border-2 border-accent object-cover shadow-sm"
+                    src={user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"}
+                    alt={user?.name || "User"}
+                    className="w-9 h-9 rounded-full border-2 border-[#CFA864] object-cover shadow-sm group-hover:scale-105 transition-transform"
                   />
-                  <span className="text-sm font-medium">{user.name}</span>
-                  <ChevronDown size={14} className={`transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180' : ''}`} />
+                  <span className="text-sm font-medium text-white group-hover:text-[#E5B869] transition-colors">
+                    {user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Kevin Shah')}
+                  </span>
+                  <ChevronDown size={14} className={`text-white/80 transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 <AnimatePresence>
@@ -129,12 +123,12 @@ export default function Navbar() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-3 w-48 rounded-2xl shadow-2xl bg-white ring-1 ring-black/5 divide-y divide-slate-100 overflow-hidden transform origin-top-right z-50 border border-slate-100"
+                      transition={{ duration: 0.18 }}
+                      className="absolute right-0 mt-3 w-52 rounded-2xl shadow-2xl bg-white ring-1 ring-black/5 divide-y divide-slate-100 overflow-hidden transform origin-top-right z-50 border border-slate-100"
                     >
                       <div className="px-4 py-3 bg-stone-50">
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Signed in as</p>
-                        <p className="text-sm font-bold text-slate-800 truncate">{user.email}</p>
+                        <p className="text-xs font-bold text-slate-800 truncate">{user?.email || 'User'}</p>
                       </div>
                       <div className="py-1">
                         <Link
@@ -144,20 +138,20 @@ export default function Navbar() {
                           <Compass size={15} className="mr-2 text-slate-400" />
                           Dashboard
                         </Link>
-                      <Link
-                        to="/dashboard/my-trips"
-                        className="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary transition-colors"
-                      >
-                        <Map size={16} className="mr-2 text-slate-400" />
-                        My Trips
-                      </Link>
+                        <Link
+                          to="/dashboard/my-trips"
+                          className="flex items-center px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-primary transition-colors"
+                        >
+                          <Map size={15} className="mr-2 text-slate-400" />
+                          My Trips
+                        </Link>
                       </div>
                       <div className="py-1">
                         <button
                           onClick={handleLogout}
-                          className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          className="flex w-full items-center px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                         >
-                          <LogOut size={16} className="mr-2" />
+                          <LogOut size={15} className="mr-2" />
                           Sign Out
                         </button>
                       </div>
@@ -166,21 +160,20 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
             ) : (
-              <>
+              <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className="text-white hover:text-accent font-medium text-sm transition-colors duration-200"
+                  className="text-white hover:text-[#E5B869] font-medium text-sm transition-colors duration-200 px-3 py-1.5"
                 >
-                  Login
+                  Sign In
                 </Link>
                 <Link
-                  to="/login"
-                  state={{ redirectTo: '/dashboard/create-trip' }}
-                  className="bg-accent hover:bg-accent-light text-primary-dark font-heading font-semibold text-sm px-5 py-2.5 rounded-full shadow-lg hover:shadow-accent/20 transition-all duration-300 hover:-translate-y-0.5"
+                  to="/register"
+                  className="bg-[#CFA864] hover:bg-[#d8b475] text-[#072D30] font-heading font-semibold text-xs px-4 py-2 rounded-full shadow-md transition-all hover:scale-105"
                 >
-                  Plan My Trip
+                  Register
                 </Link>
-              </>
+              </div>
             )}
           </div>
 

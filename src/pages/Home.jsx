@@ -56,57 +56,65 @@ export default function Home() {
   return (
     <div className="overflow-hidden bg-white">
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION WITH CINEMATIC MOUNTAIN ROAD VIDEO & SMOOTH ENTRANCE      */}
+      {/* 1. HERO SECTION MATCHING REFERENCE DESIGN                                  */}
       {/* ========================================================================= */}
-      <section className="relative h-[100vh] min-h-[620px] flex items-center justify-center bg-primary-dark overflow-hidden">
-        {/* Full-Screen Mountain Road Background Video */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover"
-          >
-            <source src="/videos/mountain-road.mp4" type="video/mp4" />
-            <source src="https://shotstack-assets.s3.amazonaws.com/footage/road.mp4" type="video/mp4" />
-            <source src="https://shotstack-assets.s3-ap-southeast-2.amazonaws.com/footage/road.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-          {/* Subtle Dark & Gradient Overlays for Maximum Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-dark via-primary-dark/45 to-primary-dark/60" />
-          <div className="absolute inset-0 bg-black/35" />
+      <section className="relative min-h-[95vh] sm:min-h-screen flex items-center justify-center bg-[#072d30] overflow-hidden pt-20 pb-16">
+        {/* Full-Screen Landscape Background Image with subtle atmospheric overlays */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/images/hero-canyon.jpg"
+            alt="Scenic Canyon River Landscape"
+            className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000"
+          />
+          {/* Natural Vignette & Contrast Overlays for Text Legibility */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/25 to-black/60" />
+          <div className="absolute inset-0 bg-[#072d30]/25 mix-blend-multiply" />
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center text-white mt-12">
-          {/* Top Badge */}
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white mt-8 sm:mt-12">
+          
+          {/* Airplane Trail & Pill Badge */}
           <motion.div
-            initial={{ opacity: 0, y: -25, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="flex items-center justify-center gap-3 mb-6"
           >
-            <span className="bg-accent/25 border border-accent/40 text-accent-light px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6 inline-block backdrop-blur-md shadow-lg">
+            {/* Small Flying Airplane with dashed flight path */}
+            <div className="flex items-center gap-1.5 opacity-90 select-none">
+              <svg 
+                className="w-5 h-5 text-white transform -rotate-45 drop-shadow" 
+                fill="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+              </svg>
+              <span className="hidden sm:inline-block w-8 border-b-2 border-dashed border-white/50" />
+            </div>
+
+            {/* Pill Badge */}
+            <span className="border border-[#D4A373]/50 bg-black/35 backdrop-blur-md text-[#E5C38C] text-[11px] sm:text-xs font-bold uppercase tracking-widest px-5 py-1.5 rounded-full shadow-lg inline-block">
               Discover Your Next Horizon
             </span>
           </motion.div>
 
-          {/* Main Headline */}
+          {/* Main Headline: "Explore the World, Your Own Way" */}
           <motion.h1
-            className="text-4xl sm:text-5xl md:text-7xl font-bold font-heading mb-6 tracking-tight drop-shadow-sm"
-            initial={{ opacity: 0, y: 30 }}
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold font-heading mb-6 tracking-tight drop-shadow-md text-white leading-tight"
+            initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
           >
             Explore the World, <br className="hidden sm:inline" />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-accent via-accent-light to-amber-200">
+            <span className="text-[#E5B869] drop-shadow-lg">
               Your Own Way
             </span>
           </motion.h1>
 
           {/* Subtitle */}
           <motion.p
-            className="text-base sm:text-lg md:text-xl text-slate-100 mb-10 max-w-2xl mx-auto font-light leading-relaxed drop-shadow"
+            className="text-sm sm:text-base md:text-lg text-slate-100/90 mb-10 max-w-2xl mx-auto font-normal leading-relaxed drop-shadow"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
@@ -114,78 +122,88 @@ export default function Home() {
             Discover breathtaking destinations, plan custom day-by-day itineraries, and organize every part of your trip in one premium dashboard.
           </motion.p>
 
-          {/* Search Box Widget with Scale-In Animation */}
+          {/* Search Box Widget (White Floating Card matching Reference) */}
           <motion.div
-            className="bg-white/95 p-4 sm:p-5 md:p-6 rounded-3xl shadow-2xl border border-white/30 max-w-4xl mx-auto text-slate-800 backdrop-blur-md"
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            className="bg-white rounded-3xl shadow-2xl p-5 sm:p-7 max-w-4xl mx-auto text-slate-800 border border-white/40"
+            initial={{ opacity: 0, y: 35, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.85, delay: 0.45, ease: [0.22, 1, 0.36, 1] }}
           >
-            <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-center">
-              {/* Destination */}
-              <div className="flex flex-col text-left px-2 border-r border-slate-200 last:border-0 md:mb-0 mb-3">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
-                  <MapPin size={12} className="text-primary mr-1" /> Where to?
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Bali, Paris..."
-                  value={searchDest}
-                  onChange={(e) => setSearchDest(e.target.value)}
-                  className="bg-transparent border-none outline-none font-semibold text-sm text-slate-700 placeholder-slate-400 py-1"
-                />
+            <form onSubmit={handleSearchSubmit} className="space-y-4">
+              {/* 4-Column Inputs Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                {/* 1. Where To? */}
+                <div className="flex flex-col text-left px-3 pt-2 sm:pt-0">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                    <MapPin size={12} className="text-slate-400 mr-1" /> WHERE TO?
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Bali, Paris..."
+                    value={searchDest}
+                    onChange={(e) => setSearchDest(e.target.value)}
+                    className="bg-transparent border-none outline-none font-semibold text-xs sm:text-sm text-slate-800 placeholder-slate-400 py-1.5 w-full"
+                  />
+                </div>
+
+                {/* 2. Start Date */}
+                <div className="flex flex-col text-left px-3 pt-3 sm:pt-0 relative">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                    <Calendar size={12} className="text-slate-400 mr-1" /> START DATE
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full bg-transparent border-none outline-none font-semibold text-xs sm:text-sm text-slate-700 py-1.5 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* 3. End Date */}
+                <div className="flex flex-col text-left px-3 pt-3 sm:pt-0 relative">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                    <Calendar size={12} className="text-slate-400 mr-1" /> END DATE
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full bg-transparent border-none outline-none font-semibold text-xs sm:text-sm text-slate-700 py-1.5 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* 4. Guests */}
+                <div className="flex flex-col text-left px-3 pt-3 sm:pt-0">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
+                    <Users size={12} className="text-slate-400 mr-1" /> GUESTS
+                  </label>
+                  <div className="relative flex items-center">
+                    <select
+                      value={travelers}
+                      onChange={(e) => setTravelers(e.target.value)}
+                      className="w-full bg-transparent border-none outline-none font-semibold text-xs sm:text-sm text-slate-700 py-1.5 cursor-pointer appearance-none pr-6"
+                    >
+                      <option value="1">1 Traveler</option>
+                      <option value="2">2 Travelers</option>
+                      <option value="3">3 Travelers</option>
+                      <option value="4">4+ Travelers</option>
+                    </select>
+                    <Users size={13} className="text-slate-400 absolute right-1 pointer-events-none" />
+                  </div>
+                </div>
               </div>
 
-              {/* Start Date */}
-              <div className="flex flex-col text-left px-2 border-r border-slate-200 last:border-0 md:mb-0 mb-3">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
-                  <Calendar size={12} className="text-primary mr-1" /> Start Date
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-transparent border-none outline-none font-semibold text-sm text-slate-700 py-1 cursor-pointer"
-                />
-              </div>
-
-              {/* End Date */}
-              <div className="flex flex-col text-left px-2 border-r border-slate-200 last:border-0 md:mb-0 mb-3">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
-                  <Calendar size={12} className="text-primary mr-1" /> End Date
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-transparent border-none outline-none font-semibold text-sm text-slate-700 py-1 cursor-pointer"
-                />
-              </div>
-
-              {/* Travelers */}
-              <div className="flex flex-col text-left px-2 last:border-0 md:mb-0 mb-3">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center">
-                  <Users size={12} className="text-primary mr-1" /> Guests
-                </label>
-                <select
-                  value={travelers}
-                  onChange={(e) => setTravelers(e.target.value)}
-                  className="bg-transparent border-none outline-none font-semibold text-sm text-slate-700 py-1 cursor-pointer"
-                >
-                  <option value="1">1 Traveler</option>
-                  <option value="2">2 Travelers</option>
-                  <option value="3">3 Travelers</option>
-                  <option value="4">4+ Travelers</option>
-                </select>
-              </div>
-
-              {/* Submit Button */}
-              <div className="col-span-1 sm:col-span-2 md:col-span-4 mt-2">
+              {/* Wide Rounded Submit Button: "Search Journeys" */}
+              <div className="pt-2">
                 <motion.button
                   type="submit"
-                  whileHover={{ scale: 1.02, backgroundColor: '#0e3a3c' }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full bg-primary text-white font-heading font-bold py-3.5 px-6 rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-primary/20 transition-all duration-300 cursor-pointer"
+                  whileHover={{ scale: 1.01, backgroundColor: '#165B5F' }}
+                  whileTap={{ scale: 0.99 }}
+                  className="w-full bg-[#0A3D40] text-white font-heading font-bold text-sm sm:text-base py-3.5 sm:py-4 px-6 rounded-2xl flex items-center justify-center space-x-2.5 shadow-lg shadow-[#0A3D40]/25 transition-all duration-300 cursor-pointer"
                 >
                   <Search size={18} />
                   <span>Search Journeys</span>

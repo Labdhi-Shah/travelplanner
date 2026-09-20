@@ -39,7 +39,7 @@ export default function Register() {
       const res = await registerUser(formData);
       if (res && res.success) {
         localStorage.setItem('ts_saved_email', (formData.email || '').trim());
-        navigate('/dashboard');
+        navigate('/');
       } else {
         setErrorMsg(res?.message || 'Registration failed. Please check your information.');
       }
