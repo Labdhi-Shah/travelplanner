@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Search, Calendar, Users, Star, Heart, MapPin, 
+  PlusCircle, Calendar, Users, Star, Heart, MapPin, 
   ArrowRight, Shield, Globe, Award, Send, Sparkles, Compass 
 } from 'lucide-react';
 import { useTravel } from '../context/TravelContext';
@@ -197,7 +197,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Wide Rounded Submit Button: "Search Journeys" */}
+              {/* Wide Rounded Submit Button: "Create a Trip" */}
               <div className="pt-2">
                 <motion.button
                   type="submit"
@@ -205,8 +205,8 @@ export default function Home() {
                   whileTap={{ scale: 0.99 }}
                   className="w-full bg-[#0A3D40] text-white font-heading font-bold text-sm sm:text-base py-3.5 sm:py-4 px-6 rounded-2xl flex items-center justify-center space-x-2.5 shadow-lg shadow-[#0A3D40]/25 transition-all duration-300 cursor-pointer"
                 >
-                  <Search size={18} />
-                  <span>Search Journeys</span>
+                  <PlusCircle size={18} />
+                  <span>Create a Trip</span>
                 </motion.button>
               </div>
             </form>
