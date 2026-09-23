@@ -23,6 +23,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Payment from './pages/Payment';
+import PlanMyTrip from './pages/PlanMyTrip';
 
 // Personal Dashboard views
 import DashboardHome from './pages/DashboardHome';
@@ -43,6 +44,7 @@ export default function App() {
         {/* Public site layout & pages */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
+          <Route path="/plan-my-trip" element={<PlanMyTrip />} />
           <Route path="/about" element={<About />} />
           <Route path="/destinations" element={<Destinations />} />
           <Route path="/destinations/:id" element={<DestinationDetails />} />

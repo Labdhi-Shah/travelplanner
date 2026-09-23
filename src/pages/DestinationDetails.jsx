@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTravel } from '../context/TravelContext';
 import { destinations } from '../data/destinations';
+import { DESTINATIONS } from '../data/tripData';
 import { hotels } from '../data/hotels';
 import { packages } from '../data/packages';
 
@@ -16,8 +17,19 @@ export default function DestinationDetails() {
   const { toggleFavorite, isFavorite } = useTravel();
   const [activeTab, setActiveTab] = useState('attractions');
 
-  // Find destination details
-  const destination = destinations.find(d => d.id === id);
+  // Find destination details from destinations or single source of truth DESTINATIONS
+  const foundInDest = destinations.find(d => d.id === id);
+  const foundInTripData = DESTINATIONS.find(d => d.id === id);
+  const destination = foundInDest || (foundInTripData ? {
+    ...foundInTripData,
+    gallery: [foundInTripData.image],
+    bestTime: "Year-round",
+    averageBudget: "Medium",
+    duration: "7 Days",
+    weather: { temp: "22°C", condition: "Pleasant", humidity: "65%", wind: "10 km/h" },
+    attractions: (foundInTripData.highlights || []).map(h => ({ name: h, image: foundInTripData.image })),
+    tips: ["Book popular experiences in advance.", "Use public transit passes for seamless city travel.", "Sample local culinary specialties."]
+  } : null);
 
   if (!destination) {
     return (
@@ -91,7 +103,7 @@ export default function DestinationDetails() {
               </button>
 
               <Link
-                to={`/dashboard/create-trip?destination=${destination.id}`}
+                to={`/plan-my-trip?dest=${destination.id}`}
                 className="bg-primary hover:bg-primary-light text-white font-heading font-semibold text-sm px-6 py-3.5 rounded-full shadow-lg transition-transform hover:-translate-y-0.5"
               >
                 Plan a Trip to {destination.name}

@@ -6,7 +6,7 @@ import {
   ArrowRight, Shield, Globe, Award, Send, Sparkles, Compass 
 } from 'lucide-react';
 import { useTravel } from '../context/TravelContext';
-import { destinations } from '../data/destinations';
+import { DESTINATIONS } from '../data/tripData';
 import { packages } from '../data/packages';
 import { hotels } from '../data/hotels';
 import { testimonials } from '../data/testimonials';
@@ -38,8 +38,18 @@ export default function Home() {
     setTestimonialIdx((prev) => (prev - 1 + testimonials.length) % testimonials.length);
   };
 
-  // Select top items for home page showcase
-  const homeDestinations = destinations.slice(0, 6);
+  // Single source of truth: destinations matching Plan My Trip exactly (ensuring no duplicate countries)
+  const homeDestinations = React.useMemo(() => {
+    const seenCountries = new Set();
+    return DESTINATIONS.filter((dest) => {
+      const countryKey = (dest.country || '').trim().toLowerCase();
+      if (seenCountries.has(countryKey)) {
+        return false;
+      }
+      seenCountries.add(countryKey);
+      return true;
+    });
+  }, []);
   const homePackages = packages.slice(0, 3);
   const homeHotels = hotels.slice(0, 3);
 
@@ -297,7 +307,7 @@ export default function Home() {
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Starts From</span>
                     <span className="text-xl font-extrabold text-primary font-heading">
-                      ${dest.price} <span className="text-xs text-slate-400 font-normal">/ pax</span>
+                      ${dest.price || 850} <span className="text-xs text-slate-400 font-normal">/ pax</span>
                     </span>
                   </div>
                   <Link

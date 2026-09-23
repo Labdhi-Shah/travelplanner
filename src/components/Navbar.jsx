@@ -40,7 +40,7 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Destinations', path: '/destinations' },
+    { name: 'Plan My Trip', path: '/plan-my-trip' },
     { name: 'Packages', path: '/packages' },
     { name: 'Flights', path: '/flights' },
     { name: 'Hotels', path: '/hotels' },
