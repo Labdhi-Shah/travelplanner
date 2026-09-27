@@ -27,7 +27,11 @@ export default function Home() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    navigate(`/destinations?search=${encodeURIComponent(searchDest)}&travelers=${travelers}`);
+    if (searchDest && searchDest.trim()) {
+      navigate(`/plan-my-trip?destination=${encodeURIComponent(searchDest.trim())}`);
+    } else {
+      navigate('/plan-my-trip');
+    }
   };
 
   const handleTestimonialNext = () => {
@@ -50,7 +54,7 @@ export default function Home() {
       return true;
     });
   }, []);
-  const homePackages = packages.slice(0, 3);
+  const homePackages = packages;
   const homeHotels = hotels.slice(0, 3);
 
   // Animation variants for smooth re-usable transitions
@@ -207,16 +211,18 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Wide Rounded Submit Button: "Create a Trip" */}
+              {/* Wide Rounded Submit Button: "Create Trip" */}
               <div className="pt-2">
                 <motion.button
                   type="submit"
+                  id="create-trip-btn"
+                  aria-label="Create Trip"
                   whileHover={{ scale: 1.01, backgroundColor: '#165B5F' }}
                   whileTap={{ scale: 0.99 }}
                   className="w-full bg-[#0A3D40] text-white font-heading font-bold text-sm sm:text-base py-3.5 sm:py-4 px-6 rounded-2xl flex items-center justify-center space-x-2.5 shadow-lg shadow-[#0A3D40]/25 transition-all duration-300 cursor-pointer"
                 >
                   <PlusCircle size={18} />
-                  <span>Create a Trip</span>
+                  <span>Create Trip</span>
                 </motion.button>
               </div>
             </form>

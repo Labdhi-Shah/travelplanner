@@ -3,7 +3,9 @@ import { useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, Compass, AlertCircle, CheckCircle2, Bookmark, 
-  RotateCcw, ArrowDown, MapPin, Calendar, Users, Plane, Hotel 
+  RotateCcw, ArrowDown, MapPin, Calendar, Users, Plane, Hotel,
+  Clock, IndianRupee, Bed, ChevronRight, ArrowUpRight, Check,
+  ShieldCheck, Eye, Layers
 } from 'lucide-react';
 
 // Subcomponents
@@ -481,207 +483,412 @@ export default function PlanMyTrip() {
     showToast('Planner reset to defaults.');
   };
 
+  // Helper for quick smooth scroll to specific step
+  const scrollToStep = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
-    <div className="bg-[#FAF9F6] min-h-screen pt-28 pb-20 px-4 sm:px-6 lg:px-8">
+    <div className="bg-[#FAF9F6] min-h-screen pt-24 sm:pt-28 pb-24 px-4 sm:px-6 lg:px-8">
       {/* Toast Notification Alert */}
       <AnimatePresence>
         {toastMessage && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-medium border border-white/10"
+            initial={{ opacity: 0, y: -25, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -25, scale: 0.95 }}
+            transition={{ duration: 0.25 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[#072D30]/95 backdrop-blur-md text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 text-sm font-semibold border border-[#CFA864]/30"
           >
-            <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />
+            <div className="w-5 h-5 rounded-full bg-[#CFA864] text-[#072D30] flex items-center justify-center shrink-0">
+              <Check className="w-3.5 h-3.5 stroke-[3]" />
+            </div>
             <span>{toastMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="max-w-7xl mx-auto">
-        {/* Page Header */}
-        <div className="mb-10 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-primary-dark text-xs font-bold uppercase tracking-wider mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-accent" />
-            <span>Interactive Travel Planner</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 font-heading tracking-tight">
-            Plan Your Dream Vacation
-          </h1>
-          <p className="mt-3 text-base sm:text-lg text-slate-600 leading-relaxed">
-            Customize every leg of your journey — from worldwide destinations and flights to luxury hotels, curated activities, and budget validation.
-          </p>
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* ========================================================================= */}
+        {/* 1. CINEMATIC HERO HEADER CARD                                             */}
+        {/* ========================================================================= */}
+        <div className="relative rounded-3xl overflow-hidden bg-[#072d30] text-white p-7 sm:p-10 shadow-xl border border-white/10">
+          {/* Ambient Lighting Orbs */}
+          <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#0a3d40] rounded-full blur-3xl opacity-70 pointer-events-none" />
+          <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#cfa864]/20 rounded-full blur-3xl opacity-60 pointer-events-none" />
 
-          {/* Quick Actions Bar */}
-          <div className="mt-4 flex items-center justify-center gap-3 text-xs font-semibold">
-            {hasSavedTrip && (
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            
+            {/* Left Content */}
+            <div className="max-w-2xl">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-[#E5C38C] text-xs font-bold uppercase tracking-widest mb-3.5">
+                <Sparkles size={13} className="text-[#CFA864]" />
+                <span>Interactive Journey Architect</span>
+              </div>
+
+              {/* Headline */}
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold font-heading text-white tracking-tight leading-tight">
+                Plan Your <span className="text-[#E5B869]">Dream Vacation</span>
+              </h1>
+
+              {/* Subtitle */}
+              <p className="mt-3 text-slate-200/90 text-sm sm:text-base leading-relaxed font-normal">
+                Customize every leg of your journey — choose curated destinations, schedule dates, select custom flights, luxury stays, and daily sightseeing with live cost validation.
+              </p>
+            </div>
+
+            {/* Right Quick Controls */}
+            <div className="flex flex-row md:flex-col items-start md:items-end justify-start gap-3 shrink-0">
+              {hasSavedTrip && (
+                <button
+                  type="button"
+                  onClick={handleRestoreTrip}
+                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-[#CFA864]/40 text-[#E5C38C] text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm hover:scale-102 cursor-pointer backdrop-blur-sm"
+                >
+                  <Bookmark className="w-3.5 h-3.5 text-[#CFA864]" />
+                  <span>Restore Saved Trip</span>
+                </button>
+              )}
+              
               <button
                 type="button"
-                onClick={handleRestoreTrip}
-                className="text-primary hover:text-primary-dark underline flex items-center gap-1 cursor-pointer"
+                onClick={handleReset}
+                className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-slate-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer backdrop-blur-sm"
               >
-                <Bookmark className="w-3.5 h-3.5" />
-                Restore Saved Trip
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset Planner</span>
               </button>
-            )}
-            <button
-              type="button"
-              onClick={handleReset}
-              className="text-slate-500 hover:text-slate-700 flex items-center gap-1 cursor-pointer ml-3"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset All
-            </button>
+            </div>
+
           </div>
+
+          {/* Bottom Live Snapshot Strip */}
+          <div className="relative z-10 mt-8 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            {/* Snapshot 1: Destination */}
+            <div className="bg-white/5 backdrop-blur-sm px-3.5 py-2.5 rounded-2xl border border-white/10 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-[#CFA864]/20 flex items-center justify-center text-[#E5C38C] shrink-0">
+                <MapPin size={14} />
+              </div>
+              <div className="truncate">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block leading-none mb-1">Destination</span>
+                <span className="font-bold text-white truncate block">{selectedDestination?.name || 'Select'}</span>
+              </div>
+            </div>
+
+            {/* Snapshot 2: Duration */}
+            <div className="bg-white/5 backdrop-blur-sm px-3.5 py-2.5 rounded-2xl border border-white/10 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-[#CFA864]/20 flex items-center justify-center text-[#E5C38C] shrink-0">
+                <Calendar size={14} />
+              </div>
+              <div className="truncate">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block leading-none mb-1">Duration</span>
+                <span className="font-bold text-white truncate block">{durationDays} Days • {hotelNights} Nights</span>
+              </div>
+            </div>
+
+            {/* Snapshot 3: Party */}
+            <div className="bg-white/5 backdrop-blur-sm px-3.5 py-2.5 rounded-2xl border border-white/10 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-[#CFA864]/20 flex items-center justify-center text-[#E5C38C] shrink-0">
+                <Users size={14} />
+              </div>
+              <div className="truncate">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block leading-none mb-1">Travelers</span>
+                <span className="font-bold text-white truncate block">{adults} Adult{adults > 1 ? 's' : ''}{children > 0 ? `, ${children} Ch.` : ''}</span>
+              </div>
+            </div>
+
+            {/* Snapshot 4: Calculated Cost */}
+            <div className="bg-white/5 backdrop-blur-sm px-3.5 py-2.5 rounded-2xl border border-white/10 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-[#CFA864]/20 flex items-center justify-center text-[#E5C38C] shrink-0">
+                <IndianRupee size={14} />
+              </div>
+              <div className="truncate">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block leading-none mb-1">Live Estimate</span>
+                <span className="font-bold text-[#E5C38C] truncate block">{formatINR(finalTripCost)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* 2. PLANNING MILESTONE NAVIGATOR (QUICK JUMP BAR)                           */}
+        {/* ========================================================================= */}
+        <div className="bg-white px-4 py-3 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 shrink-0 text-xs font-bold text-slate-400 uppercase tracking-wider mr-2 hidden sm:flex">
+            <Layers size={13} className="text-primary" />
+            <span>Milestones:</span>
+          </div>
+
+          <div className="flex items-center gap-2 min-w-max">
+            {[
+              { id: 'step-destination', num: '1', title: 'Destination' },
+              { id: 'step-dates', num: '2', title: 'Dates' },
+              { id: 'step-travelers', num: '3', title: 'Travelers' },
+              { id: 'step-budget', num: '4', title: 'Budget' },
+              { id: 'step-preferences', num: '5', title: 'Mood' },
+              { id: 'step-transport', num: '6', title: 'Transport' },
+              { id: 'step-hotel', num: '7', title: 'Hotel' },
+              { id: 'step-activities', num: '8', title: 'Activities' },
+              { id: 'section-itinerary', num: '9', title: 'Itinerary' }
+            ].map((step) => (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => scrollToStep(step.id)}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100/80 hover:bg-primary/10 hover:text-primary text-slate-600 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+              >
+                <span className="w-4 h-4 rounded-full bg-white text-slate-700 text-[10px] font-bold flex items-center justify-center shadow-xs">
+                  {step.num}
+                </span>
+                <span>{step.title}</span>
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGenerateTrip}
+            className="hidden md:inline-flex items-center gap-1 text-xs font-bold bg-[#0A3D40] text-white px-3.5 py-1.5 rounded-xl hover:bg-[#165B5F] transition shadow-xs shrink-0 cursor-pointer ml-2"
+          >
+            <Sparkles size={12} className="text-[#CFA864]" />
+            <span>Generate</span>
+          </button>
         </div>
 
         {/* Validation Errors Notice */}
         {validationErrors.length > 0 && (
-          <div className="mb-8 p-4 bg-rose-50 border border-rose-200 rounded-2xl">
-            <div className="flex items-center gap-2 text-rose-800 font-bold text-sm mb-2">
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-5 bg-rose-50 border border-rose-200/90 rounded-2xl shadow-sm space-y-2"
+          >
+            <div className="flex items-center gap-2 text-rose-800 font-bold text-sm">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-              <span>Please complete the following required items:</span>
+              <span>Please review and complete the following requirements:</span>
             </div>
-            <ul className="list-disc list-inside space-y-1 text-xs text-rose-700">
+            <ul className="list-disc list-inside space-y-1 text-xs text-rose-700 font-medium pl-1">
               {validationErrors.map((err, idx) => (
                 <li key={idx}>{err}</li>
               ))}
             </ul>
-          </div>
+          </motion.div>
         )}
 
-        {/* ---------------------------------------------------- */}
-        {/* Responsive Two-Column Layout */}
-        {/* ---------------------------------------------------- */}
+        {/* ========================================================================= */}
+        {/* 3. RESPONSIVE TWO-COLUMN PLANNING WORKSPACE                                */}
+        {/* ========================================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* LEFT COLUMN: Planning Controls & Configuration */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+          {/* --------------------------------------------------------------------- */}
+          {/* LEFT COLUMN: GUIDED PLANNING SECTIONS                                 */}
+          {/* --------------------------------------------------------------------- */}
+          <div className="lg:col-span-7 xl:col-span-8 space-y-8">
             
-            {/* Step 1: Destination Selection */}
-            <DestinationSelector
-              selectedDestination={selectedDestination}
-              onSelectDestination={handleSelectDestination}
-            />
-
-            {/* Step 2: Dates */}
-            <DateSelector
-              startDate={startDate}
-              endDate={endDate}
-              onStartDateChange={(val) => {
-                setStartDate(val);
-                setValidationErrors((prev) => prev.filter((e) => !e.includes('dates')));
-              }}
-              onEndDateChange={(val) => {
-                setEndDate(val);
-                setValidationErrors((prev) => prev.filter((e) => !e.includes('dates')));
-              }}
-              durationDays={durationDays}
-              hotelNights={hotelNights}
-              dateError={dateError}
-            />
-
-            {/* Step 3: Travelers & Trip Type */}
-            <TravelerSelector
-              adults={adults}
-              children={children}
-              rooms={rooms}
-              tripType={tripType}
-              onAdultsChange={setAdults}
-              onChildrenChange={setChildren}
-              onRoomsChange={setRooms}
-              onTripTypeChange={setTripType}
-            />
-
-            {/* Step 4: Budget */}
-            <BudgetSelector
-              budget={budget}
-              onBudgetChange={setBudget}
-            />
-
-            {/* Step 5: Preferences */}
-            <PreferenceSelector
-              preferences={preferences}
-              onTogglePreference={handleTogglePreference}
-            />
-
-            {/* Step 6: Transport Preference */}
-            <TransportSelector
-              transport={transport}
-              onTransportChange={(t) => {
-                setTransport(t);
-                setValidationErrors((prev) => prev.filter((e) => !e.includes('flight')));
-              }}
-            />
-
-            {/* Step 7: Flight Selection (Conditional on Flight) */}
-            {transport === 'Flight' && (
-              <FlightSelector
-                selectedDestination={selectedDestination}
-                originCity={originCity}
-                onOriginCityChange={setOriginCity}
-                departureDate={startDate}
-                returnDate={endDate}
-                adults={adults}
-                children={children}
-                cabinClass={cabinClass}
-                onCabinClassChange={setCabinClass}
-                selectedFlight={selectedFlight}
-                onSelectFlight={(fl) => {
-                  setSelectedFlight(fl);
-                  setValidationErrors((prev) => prev.filter((e) => !e.includes('flight')));
-                }}
-              />
-            )}
-
-            {/* Step 8: Hotel Selection */}
-            <HotelSelector
-              selectedDestination={selectedDestination}
-              checkInDate={startDate}
-              checkOutDate={endDate}
-              hotelNights={hotelNights}
-              rooms={rooms}
-              adults={adults}
-              children={children}
-              selectedHotel={selectedHotel}
-              onSelectHotel={(h) => {
-                setSelectedHotel(h);
-                setValidationErrors((prev) => prev.filter((e) => !e.includes('hotel')));
-              }}
-            />
-
-            {/* Step 9: Activities */}
-            <ActivitySelector
-              selectedDestination={selectedDestination}
-              selectedActivities={selectedActivities}
-              onToggleActivity={handleToggleActivity}
-              adults={adults}
-              children={children}
-            />
-
-            {/* Generate My Trip Prominent Button in Left Flow */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 font-heading">
-                  Ready to see your tailored journey?
+            {/* PHASE 1: CORE FOUNDATIONS (Destination & Dates) */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                <span className="text-xs font-extrabold text-[#0A3D40] bg-[#0A3D40]/10 px-2.5 py-0.5 rounded-md font-heading uppercase tracking-wider">
+                  Phase 01
+                </span>
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider font-heading">
+                  Destination & Travel Window
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Validates all details, tabulates costs, and generates a day-by-day plan.
-                </p>
               </div>
 
-              <button
-                type="button"
-                onClick={handleGenerateTrip}
-                className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-primary hover:bg-primary-light text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
-              >
-                <Sparkles className="w-4 h-4 text-accent" />
-                <span>Generate My Trip</span>
-              </button>
+              {/* Step 1: Destination Selection */}
+              <div id="step-destination" className="scroll-mt-24">
+                <DestinationSelector
+                  selectedDestination={selectedDestination}
+                  onSelectDestination={handleSelectDestination}
+                />
+              </div>
+
+              {/* Step 2: Dates */}
+              <div id="step-dates" className="scroll-mt-24">
+                <DateSelector
+                  startDate={startDate}
+                  endDate={endDate}
+                  onStartDateChange={(val) => {
+                    setStartDate(val);
+                    setValidationErrors((prev) => prev.filter((e) => !e.includes('dates')));
+                  }}
+                  onEndDateChange={(val) => {
+                    setEndDate(val);
+                    setValidationErrors((prev) => prev.filter((e) => !e.includes('dates')));
+                  }}
+                  durationDays={durationDays}
+                  hotelNights={hotelNights}
+                  dateError={dateError}
+                />
+              </div>
+            </div>
+
+            {/* PHASE 2: PARTY & INVESTMENT TARGET (Travelers & Budget) */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                <span className="text-xs font-extrabold text-[#0A3D40] bg-[#0A3D40]/10 px-2.5 py-0.5 rounded-md font-heading uppercase tracking-wider">
+                  Phase 02
+                </span>
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider font-heading">
+                  Party Configuration & Target Budget
+                </h3>
+              </div>
+
+              {/* Step 3: Travelers & Trip Type */}
+              <div id="step-travelers" className="scroll-mt-24">
+                <TravelerSelector
+                  adults={adults}
+                  children={children}
+                  rooms={rooms}
+                  tripType={tripType}
+                  onAdultsChange={setAdults}
+                  onChildrenChange={setChildren}
+                  onRoomsChange={setRooms}
+                  onTripTypeChange={setTripType}
+                />
+              </div>
+
+              {/* Step 4: Budget */}
+              <div id="step-budget" className="scroll-mt-24">
+                <BudgetSelector
+                  budget={budget}
+                  onBudgetChange={setBudget}
+                />
+              </div>
+            </div>
+
+            {/* PHASE 3: TRAVEL VIBE & TRANSIT (Preferences & Transport) */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                <span className="text-xs font-extrabold text-[#0A3D40] bg-[#0A3D40]/10 px-2.5 py-0.5 rounded-md font-heading uppercase tracking-wider">
+                  Phase 03
+                </span>
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider font-heading">
+                  Vacation Mood & Transit Mode
+                </h3>
+              </div>
+
+              {/* Step 5: Preferences */}
+              <div id="step-preferences" className="scroll-mt-24">
+                <PreferenceSelector
+                  preferences={preferences}
+                  onTogglePreference={handleTogglePreference}
+                />
+              </div>
+
+              {/* Step 6: Transport Preference */}
+              <div id="step-transport" className="scroll-mt-24">
+                <TransportSelector
+                  transport={transport}
+                  onTransportChange={(t) => {
+                    setTransport(t);
+                    setValidationErrors((prev) => prev.filter((e) => !e.includes('flight')));
+                  }}
+                />
+              </div>
+
+              {/* Step 7: Flight Selection (Conditional on Flight) */}
+              {transport === 'Flight' && (
+                <div id="step-flight" className="scroll-mt-24">
+                  <FlightSelector
+                    selectedDestination={selectedDestination}
+                    originCity={originCity}
+                    onOriginCityChange={setOriginCity}
+                    departureDate={startDate}
+                    returnDate={endDate}
+                    adults={adults}
+                    children={children}
+                    cabinClass={cabinClass}
+                    onCabinClassChange={setCabinClass}
+                    selectedFlight={selectedFlight}
+                    onSelectFlight={(fl) => {
+                      setSelectedFlight(fl);
+                      setValidationErrors((prev) => prev.filter((e) => !e.includes('flight')));
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* PHASE 4: STAYS & EXPERIENCES (Hotel & Activities) */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                <span className="text-xs font-extrabold text-[#0A3D40] bg-[#0A3D40]/10 px-2.5 py-0.5 rounded-md font-heading uppercase tracking-wider">
+                  Phase 04
+                </span>
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider font-heading">
+                  Accommodations & Sightseeing
+                </h3>
+              </div>
+
+              {/* Step 8: Hotel Selection */}
+              <div id="step-hotel" className="scroll-mt-24">
+                <HotelSelector
+                  selectedDestination={selectedDestination}
+                  checkInDate={startDate}
+                  checkOutDate={endDate}
+                  hotelNights={hotelNights}
+                  rooms={rooms}
+                  adults={adults}
+                  children={children}
+                  selectedHotel={selectedHotel}
+                  onSelectHotel={(h) => {
+                    setSelectedHotel(h);
+                    setValidationErrors((prev) => prev.filter((e) => !e.includes('hotel')));
+                  }}
+                />
+              </div>
+
+              {/* Step 9: Activities */}
+              <div id="step-activities" className="scroll-mt-24">
+                <ActivitySelector
+                  selectedDestination={selectedDestination}
+                  selectedActivities={selectedActivities}
+                  onToggleActivity={handleToggleActivity}
+                  adults={adults}
+                  children={children}
+                />
+              </div>
+            </div>
+
+            {/* ---------------------------------------------------- */}
+            {/* GENERATE MY TRIP PROMINENT CALL TO ACTION BANNER     */}
+            {/* ---------------------------------------------------- */}
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-[#072D30] via-[#0A3D40] to-[#165B5F] text-white p-7 sm:p-8 shadow-xl border border-white/10">
+              <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-[#CFA864]/15 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[#E5C38C] text-[11px] font-bold uppercase tracking-wider mb-2">
+                    <Sparkles size={11} className="text-[#CFA864]" />
+                    <span>Ready for Your Schedule?</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold font-heading text-white">
+                    Generate Your Custom Itinerary
+                  </h3>
+                  <p className="text-slate-300 text-xs sm:text-sm mt-1 leading-relaxed max-w-lg">
+                    Validates dates and selections, audits your total cost, and crafts a day-by-day timetable tailored to your preferences.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGenerateTrip}
+                  className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-[#CFA864] hover:bg-[#E5C38C] text-[#072D30] font-heading font-extrabold text-sm sm:text-base shadow-lg shadow-[#072D30]/40 transition-all hover:scale-103 active:scale-98 flex items-center justify-center gap-2.5 cursor-pointer shrink-0"
+                >
+                  <Sparkles className="w-4 h-4 text-[#072D30]" />
+                  <span>Generate My Trip</span>
+                </button>
+              </div>
             </div>
 
             {/* Day-by-Day Itinerary Section (Rendered when generated or when viewing) */}
-            <div ref={itineraryRef}>
+            <div id="section-itinerary" ref={itineraryRef} className="scroll-mt-24">
               {isGenerated && (
                 <Itinerary
                   destination={selectedDestination}
@@ -699,7 +906,7 @@ export default function PlanMyTrip() {
             </div>
 
             {/* Step 10: Payment & Final Checkout Section */}
-            <div ref={paymentRef} className="pt-2">
+            <div id="section-payment" ref={paymentRef} className="pt-2 scroll-mt-24">
               <PaymentSection
                 destination={selectedDestination}
                 startDate={startDate}
@@ -725,8 +932,11 @@ export default function PlanMyTrip() {
 
           </div>
 
-          {/* RIGHT COLUMN: Sticky Trip Preview, Cost Summary & Actions */}
-          <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+          {/* --------------------------------------------------------------------- */}
+          {/* RIGHT COLUMN: STICKY TRIP PREVIEW & REAL-TIME COST AUDIT              */}
+          {/* --------------------------------------------------------------------- */}
+          <div className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-24 z-20">
+            
             {/* Cost Breakdown & Real-Time Budget Validator */}
             <CostSummary
               flightTotal={flightTotal}
@@ -768,6 +978,58 @@ export default function PlanMyTrip() {
             />
           </div>
 
+        </div>
+
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. MOBILE FLOATING ACTION BAR (STICKY DOCK ON SMALL SCREENS)              */}
+      {/* ========================================================================= */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-2xl flex items-center justify-between gap-3">
+        <div>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+            {selectedDestination?.name || 'Trip'} • {durationDays}D
+          </span>
+          <span className="font-extrabold text-base text-[#0A3D40] font-heading block">
+            {formatINR(finalTripCost)}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {isGenerated ? (
+            <button
+              type="button"
+              onClick={handleProceedToPayment}
+              className="px-4 py-2.5 rounded-xl bg-[#0A3D40] text-white text-xs font-bold hover:bg-[#165B5F] transition flex items-center gap-1.5 shadow-md cursor-pointer"
+            >
+              <span>Book Trip</span>
+              <ArrowDown size={13} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleGenerateTrip}
+              className="px-4 py-2.5 rounded-xl bg-[#CFA864] text-[#072D30] text-xs font-bold hover:bg-[#E5C38C] transition flex items-center gap-1.5 shadow-md cursor-pointer"
+            >
+              <Sparkles size={13} />
+              <span>Generate</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              if (itineraryRef.current && isGenerated) {
+                itineraryRef.current.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                handleViewItinerary();
+              }
+            }}
+            className="p-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+            title="View Itinerary"
+          >
+            <Eye size={16} />
+          </button>
         </div>
       </div>
 
