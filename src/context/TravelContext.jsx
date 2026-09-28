@@ -542,6 +542,7 @@ export const TravelProvider = ({ children }) => {
       favorites,
       currentCheckout,
       setCurrentCheckout,
+      token: localStorage.getItem('ts_token') || user?.token || null,
       syncLoginState,
       loginUser,
       registerUser,

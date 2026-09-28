@@ -14,10 +14,25 @@ export default function Itinerary({
   activities,
   preferences,
   transport,
-  onOpenExtendModal
+  onOpenExtendModal,
+  apiItinerary = null
 }) {
   // Helper to build real date strings for each day
   const getDayDate = (dayIndex) => {
+    if (apiItinerary && apiItinerary[dayIndex]?.date) {
+      try {
+        const d = new Date(apiItinerary[dayIndex].date);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleDateString('en-GB', {
+            weekday: 'short',
+            day: '2-digit',
+            month: 'short'
+          });
+        }
+      } catch {
+        // Fallback to client date math below
+      }
+    }
     if (!startDate) return `Day ${dayIndex + 1}`;
     try {
       const d = new Date(startDate + 'T00:00:00');
@@ -32,8 +47,9 @@ export default function Itinerary({
     }
   };
 
-  // Generate dynamic days based on actual durationDays
-  const daysList = Array.from({ length: Math.max(1, durationDays) }, (_, i) => i + 1);
+  // Generate dynamic days based on actual durationDays or API itinerary length
+  const totalDays = Math.max(1, durationDays, apiItinerary?.length || 0);
+  const daysList = Array.from({ length: totalDays }, (_, i) => i + 1);
 
   // Pool of activity highlights based on destination & user's added activities
   const userActivities = [...activities];
@@ -49,8 +65,15 @@ export default function Itinerary({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-3 py-1 rounded-full bg-emerald-100 text-primary-dark font-bold text-xs uppercase tracking-wider">
-              Bespoke Schedule
+            <span className="px-3 py-1 rounded-full bg-emerald-100 text-primary-dark font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+              {apiItinerary && apiItinerary.length > 0 ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                  <span>API Generated Schedule</span>
+                </>
+              ) : (
+                <span>Bespoke Schedule</span>
+              )}
             </span>
             <span className="text-xs text-slate-400">
               {durationDays} Days / {Math.max(1, durationDays - 1)} Nights
@@ -94,6 +117,9 @@ export default function Itinerary({
           const assignedActivity = userActivities[idx % (userActivities.length || 1)];
           const fallbackHighlight = destHighlights[idx % destHighlights.length];
 
+          // Find matching day from backend generated itinerary if available
+          const apiDay = apiItinerary?.find((item) => Number(item.day) === dayNum);
+
           return (
             <div key={dayNum} className="relative pl-10 md:pl-12">
               {/* Timeline marker node */}
@@ -122,6 +148,19 @@ export default function Itinerary({
                     <span>{destination?.name}, {destination?.country}</span>
                   </div>
                 </div>
+
+                {/* API Generated Day Details Highlight */}
+                {apiDay?.details && (
+                  <div className="mb-4 p-3 rounded-xl bg-emerald-50/90 border border-emerald-200 flex items-center gap-2.5 text-xs font-semibold text-emerald-950 shadow-xs">
+                    <div className="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                      <Sparkles className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider block">Generated Focus</span>
+                      <span className="text-slate-800">{apiDay.details}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Day Schedule Slots: Morning, Afternoon, Evening */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">

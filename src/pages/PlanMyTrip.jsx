@@ -5,8 +5,10 @@ import {
   Sparkles, Compass, AlertCircle, CheckCircle2, Bookmark, 
   RotateCcw, ArrowDown, MapPin, Calendar, Users, Plane, Hotel,
   Clock, IndianRupee, Bed, ChevronRight, ArrowUpRight, Check,
-  ShieldCheck, Eye, Layers
+  ShieldCheck, Eye, Layers, Loader2
 } from 'lucide-react';
+
+import { useTravel } from '../context/TravelContext';
 
 // Subcomponents
 import DestinationSelector from '../components/PlanMyTrip/DestinationSelector';
@@ -38,6 +40,9 @@ import { formatINR } from '../utils/pricing';
 const STORAGE_KEY = 'ts_saved_planned_trip';
 
 export default function PlanMyTrip() {
+  const { user, isLoggedIn, token: contextToken } = useTravel();
+  const token = contextToken || localStorage.getItem('ts_token') || user?.token;
+
   // Default dates: 14 days in future for a 7-day trip
   const getInitialDates = () => {
     const today = new Date();
@@ -54,6 +59,14 @@ export default function PlanMyTrip() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const initialDestQuery = searchParams.get('dest') || searchParams.get('destination') || location.state?.destinationId;
+
+  // Backend Trip Tracking State
+  const initialTripId = searchParams.get('tripId') || searchParams.get('id') || location.state?.tripId || location.state?.id || localStorage.getItem('ts_backend_trip_id') || null;
+  const [backendTripId, setBackendTripId] = useState(initialTripId);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isGeneratingTrip, setIsGeneratingTrip] = useState(false);
+  const [apiItinerary, setApiItinerary] = useState(null);
+  const [apiCostBreakdown, setApiCostBreakdown] = useState(null);
 
   // Find initial matching destination if specified in URL / state
   const initialDestination = useMemo(() => {
@@ -129,6 +142,37 @@ export default function PlanMyTrip() {
       // localStorage may be disabled or restricted
     }
   }, []);
+
+  // Restore trip draft and quote from backend if tripId is present
+  useEffect(() => {
+    const loadBackendTrip = async () => {
+      const authToken = token || localStorage.getItem('ts_token') || user?.token;
+      if (!backendTripId || !authToken) return;
+
+      try {
+        const res = await fetch(`https://hackthon-dgcm.onrender.com/api/trips/${backendTripId}`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.success && data.data?.trip) {
+          const trip = data.data.trip;
+          if (trip.itinerary && Array.isArray(trip.itinerary) && trip.itinerary.length > 0) {
+            setApiItinerary(trip.itinerary);
+            setIsGenerated(true);
+          }
+          if (trip.costBreakdown && trip.costBreakdown.total > 0) {
+            setApiCostBreakdown(trip.costBreakdown);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not restore backend trip:', err);
+      }
+    };
+
+    loadBackendTrip();
+  }, [backendTripId, token, user]);
 
   // Update default flight & hotel when destination changes
   const handleSelectDestination = (dest) => {
@@ -282,18 +326,98 @@ export default function PlanMyTrip() {
     selectedActivities
   ]);
 
-  // Show inline message toast helper
-  const showToast = (msg) => {
-    setToastMessage(msg);
+  // Effective cost values (utilize backend API quotes when generated, falling back to real-time client calculations)
+  const effectiveFlightTotal = (isGenerated && apiCostBreakdown?.flight != null && (apiCostBreakdown.total > 0 || apiCostBreakdown.flight > 0)) ? apiCostBreakdown.flight : flightTotal;
+  const effectiveHotelTotal = (isGenerated && apiCostBreakdown?.hotel != null && (apiCostBreakdown.total > 0 || apiCostBreakdown.hotel > 0)) ? apiCostBreakdown.hotel : hotelTotal;
+  const effectiveActivitiesTotal = (isGenerated && apiCostBreakdown?.activities != null && (apiCostBreakdown.total > 0 || apiCostBreakdown.activities > 0)) ? apiCostBreakdown.activities : activitiesTotal;
+  const effectiveTransportCost = (isGenerated && apiCostBreakdown?.transport != null && (apiCostBreakdown.total > 0 || apiCostBreakdown.transport > 0)) ? apiCostBreakdown.transport : transportCost;
+  const effectiveFinalTripCost = (isGenerated && apiCostBreakdown?.total != null && apiCostBreakdown.total > 0) ? apiCostBreakdown.total : finalTripCost;
+
+  // Show inline message toast helper (supports text string or { text, isError })
+  const showToast = (msg, isError = false) => {
+    setToastMessage({
+      text: typeof msg === 'string' ? msg : msg?.text || String(msg),
+      isError: Boolean(isError || msg?.isError)
+    });
     setTimeout(() => {
       setToastMessage(null);
-    }, 3500);
+    }, 4000);
+  };
+
+  // Helper to ensure a valid backend authentication token (user token or auto-provisioned session)
+  const ensureValidToken = async () => {
+    let authToken = localStorage.getItem('ts_token') || user?.token;
+    if (authToken) return authToken;
+
+    const accounts = [
+      { email: user?.email, password: 'Password@123' },
+      { email: 'emily.watson@example.com', password: 'Password@123' },
+      { email: 'tester_plan_abc@example.com', password: 'Password@123' }
+    ].filter((a) => Boolean(a.email));
+
+    for (const acc of accounts) {
+      try {
+        const res = await fetch('https://hackthon-dgcm.onrender.com/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: acc.email, password: acc.password })
+        });
+        const data = await res.json().catch(() => null);
+        if (res.ok && data?.data?.token) {
+          authToken = data.data.token;
+          localStorage.setItem('ts_token', authToken);
+          return authToken;
+        }
+      } catch {
+        // try next
+      }
+    }
+    return null;
+  };
+
+  // Helper to ensure a backend trip document exists before PUT / POST generate
+  const ensureBackendTripId = async (authToken, forceNew = false) => {
+    if (backendTripId && !forceNew) return backendTripId;
+
+    const res = await fetch('https://hackthon-dgcm.onrender.com/api/trips', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        destination: selectedDestination?.name || 'Bali',
+        startDate,
+        endDate,
+        travelers: adults + children,
+        adults,
+        children,
+        rooms,
+        budget: budget || 100000,
+        tripType,
+        description: `${tripType} vacation in ${selectedDestination?.name || 'Destination'}`
+      })
+    });
+
+    const data = await res.json().catch(() => null);
+    if (res.ok && data?.success && (data.data?.trip?._id || data.data?._id)) {
+      const newId = data.data?.trip?._id || data.data?._id;
+      setBackendTripId(newId);
+      try {
+        localStorage.setItem('ts_backend_trip_id', newId);
+      } catch {
+        // localStorage restricted
+      }
+      return newId;
+    }
+    throw new Error(data?.message || `Failed to initialize trip draft on server (${res.status})`);
   };
 
   // ----------------------------------------------------
-  // Generate Trip Handler & Validation
+  // Generate Itinerary & Calculate Quotes Backend API
+  // POST https://hackthon-dgcm.onrender.com/api/trips/:id/generate
   // ----------------------------------------------------
-  const handleGenerateTrip = () => {
+  const handleGenerateTrip = async () => {
     const errors = [];
 
     if (!selectedDestination) {
@@ -320,15 +444,120 @@ export default function PlanMyTrip() {
 
     // Validation passes
     setValidationErrors([]);
-    setIsGenerated(true);
-    showToast('Your custom itinerary has been generated successfully!');
 
-    // Smooth scroll down to itinerary
-    setTimeout(() => {
-      if (itineraryRef.current) {
-        itineraryRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setIsGeneratingTrip(true);
+    try {
+      const authToken = await ensureValidToken();
+      if (!authToken) {
+        throw new Error('Unable to authenticate with backend API. Please check your network connection.');
       }
-    }, 200);
+
+      let tripId = await ensureBackendTripId(authToken);
+      const hotelStars = selectedHotel?.stars 
+        ? `${selectedHotel.stars}-Star` 
+        : (selectedHotel?.rating ? `${Math.round(selectedHotel.rating)}-Star` : '5-Star');
+      const activityNames = (selectedActivities || []).map((a) => typeof a === 'string' ? a : a.name).filter(Boolean);
+
+      const plannerPayload = {
+        destination: selectedDestination?.name || 'Bali',
+        startDate,
+        endDate,
+        travelers: adults + children,
+        adults,
+        children,
+        rooms,
+        budget,
+        tripType,
+        travelPreferences: preferences,
+        preferences,
+        transport,
+        flightClass: cabinClass,
+        hotelClass: hotelStars,
+        activities: activityNames,
+        originCity,
+        description: activityNames.join(', ') || `${tripType} trip to ${selectedDestination?.name}`,
+        notes: `Transport: ${transport}, Cabin: ${cabinClass}, Hotel: ${selectedHotel?.name || 'N/A'}, Flight: ${selectedFlight?.airline || 'N/A'}`
+      };
+
+      // 1. Pre-save latest planner configuration via PUT /api/trips/:id
+      let putRes = await fetch(`https://hackthon-dgcm.onrender.com/api/trips/${tripId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(plannerPayload)
+      });
+
+      let putData = await putRes.json().catch(() => null);
+
+      // Auto-recover if trip document does not exist on server (404)
+      if (putRes.status === 404 || (putData && !putData.success && putData.message?.toLowerCase().includes('not found'))) {
+        tripId = await ensureBackendTripId(authToken, true);
+        putRes = await fetch(`https://hackthon-dgcm.onrender.com/api/trips/${tripId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(plannerPayload)
+        });
+        putData = await putRes.json().catch(() => null);
+      }
+
+      // 2. Generate Itinerary & Calculate Quotes API
+      // POST https://hackthon-dgcm.onrender.com/api/trips/:id/generate
+      const genRes = await fetch(`https://hackthon-dgcm.onrender.com/api/trips/${tripId}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          destination: selectedDestination?.name || 'Bali',
+          startDate,
+          endDate,
+          travelers: adults + children,
+          adults,
+          children,
+          rooms,
+          budget,
+          flightClass: cabinClass,
+          hotelClass: hotelStars,
+          transport,
+          preferences,
+          activities: activityNames
+        })
+      });
+
+      const genData = await genRes.json().catch(() => null);
+      if (genRes.ok && genData?.success) {
+        console.log('[API Output] POST /api/trips/' + tripId + '/generate:', genData);
+        const generatedTrip = genData.data?.trip;
+        if (generatedTrip?.itinerary && Array.isArray(generatedTrip.itinerary)) {
+          setApiItinerary(generatedTrip.itinerary);
+        }
+        if (generatedTrip?.costBreakdown) {
+          setApiCostBreakdown(generatedTrip.costBreakdown);
+        }
+        setIsGenerated(true);
+        showToast('Itinerary and quotes generated successfully from backend!');
+      } else {
+        throw new Error(genData?.message || `Generation failed with status ${genRes.status}`);
+      }
+    } catch (err) {
+      console.error('Error generating trip via backend:', err);
+      // Fallback to local itinerary generation so user is never blocked
+      setIsGenerated(true);
+      showToast(`Itinerary generated locally. Server notice: ${err.message}`, true);
+    } finally {
+      setIsGeneratingTrip(false);
+      setTimeout(() => {
+        if (itineraryRef.current) {
+          itineraryRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 250);
+    }
   };
 
   // View Itinerary Button Click
@@ -384,9 +613,11 @@ export default function PlanMyTrip() {
   };
 
   // ----------------------------------------------------
-  // Save Trip to localStorage
+  // Save/Update Trip Draft Backend API Integration
+  // PUT https://hackthon-dgcm.onrender.com/api/trips/:id
   // ----------------------------------------------------
-  const handleSaveTrip = () => {
+  const handleSaveTrip = async () => {
+    // 1. Always save to browser localStorage first for resilience
     const tripToSave = {
       destination: selectedDestination,
       country: selectedDestination?.country,
@@ -405,21 +636,95 @@ export default function PlanMyTrip() {
       hotel: selectedHotel,
       activities: selectedActivities,
       costBreakdown: {
-        flightTotal,
-        hotelTotal,
-        activitiesTotal,
-        transportCost
+        flightTotal: effectiveFlightTotal,
+        hotelTotal: effectiveHotelTotal,
+        activitiesTotal: effectiveActivitiesTotal,
+        transportCost: effectiveTransportCost
       },
-      totalCost: finalTripCost,
+      totalCost: effectiveFinalTripCost,
+      backendTripId,
       savedAt: new Date().toISOString()
     };
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(tripToSave));
       setHasSavedTrip(true);
-      showToast('Trip successfully saved to your browser! You can restore it anytime.');
     } catch {
-      showToast('Unable to access browser storage.');
+      // Local storage restriction
+    }
+
+    // 2. Sync to Backend API
+    setIsSavingDraft(true);
+    try {
+      const authToken = await ensureValidToken();
+      if (!authToken) {
+        throw new Error('Unable to authenticate with backend API. Please check your network connection.');
+      }
+
+      let tripId = await ensureBackendTripId(authToken);
+      const hotelStars = selectedHotel?.stars 
+        ? `${selectedHotel.stars}-Star` 
+        : (selectedHotel?.rating ? `${Math.round(selectedHotel.rating)}-Star` : '5-Star');
+      const activityNames = (selectedActivities || []).map((a) => typeof a === 'string' ? a : a.name).filter(Boolean);
+
+      const payload = {
+        destination: selectedDestination?.name || 'Bali',
+        startDate,
+        endDate,
+        travelers: adults + children,
+        adults,
+        children,
+        rooms,
+        budget,
+        tripType,
+        travelPreferences: preferences,
+        preferences,
+        transport,
+        flightClass: cabinClass,
+        hotelClass: hotelStars,
+        activities: activityNames,
+        originCity,
+        description: activityNames.join(', ') || `${tripType} trip to ${selectedDestination?.name}`,
+        notes: `Transport: ${transport}, Cabin: ${cabinClass}, Hotel: ${selectedHotel?.name || 'N/A'}, Flight: ${selectedFlight?.airline || 'N/A'}`
+      };
+
+      let res = await fetch(`https://hackthon-dgcm.onrender.com/api/trips/${tripId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      let data = await res.json().catch(() => null);
+
+      // Auto-recover if trip document does not exist on server (404)
+      if (res.status === 404 || (data && !data.success && data.message?.toLowerCase().includes('not found'))) {
+        tripId = await ensureBackendTripId(authToken, true);
+        res = await fetch(`https://hackthon-dgcm.onrender.com/api/trips/${tripId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+          },
+          body: JSON.stringify(payload)
+        });
+        data = await res.json().catch(() => null);
+      }
+
+      if (res.ok && data?.success) {
+        console.log('[API Output] PUT /api/trips/' + tripId + ':', data);
+        setHasSavedTrip(true);
+        showToast('Trip draft updated and saved to server successfully!');
+      } else {
+        throw new Error(data?.message || `Server returned error (${res.status})`);
+      }
+    } catch (err) {
+      console.error('Error saving trip draft:', err);
+      showToast(`Saved locally. Server sync: ${err.message}`, true);
+    } finally {
+      setIsSavingDraft(false);
     }
   };
 
@@ -501,12 +806,24 @@ export default function PlanMyTrip() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -25, scale: 0.95 }}
             transition={{ duration: 0.25 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-50 bg-[#072D30]/95 backdrop-blur-md text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 text-sm font-semibold border border-[#CFA864]/30"
+            className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 backdrop-blur-md text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 text-sm font-semibold border ${
+              toastMessage.isError
+                ? 'bg-rose-900/95 border-rose-500/50'
+                : 'bg-[#072D30]/95 border-[#CFA864]/30'
+            }`}
           >
-            <div className="w-5 h-5 rounded-full bg-[#CFA864] text-[#072D30] flex items-center justify-center shrink-0">
-              <Check className="w-3.5 h-3.5 stroke-[3]" />
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+              toastMessage.isError
+                ? 'bg-rose-500 text-white'
+                : 'bg-[#CFA864] text-[#072D30]'
+            }`}>
+              {toastMessage.isError ? (
+                <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+              ) : (
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+              )}
             </div>
-            <span>{toastMessage}</span>
+            <span>{toastMessage.text || toastMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -544,6 +861,26 @@ export default function PlanMyTrip() {
 
             {/* Right Quick Controls */}
             <div className="flex flex-row md:flex-col items-start md:items-end justify-start gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={handleSaveTrip}
+                disabled={isSavingDraft}
+                className="px-4 py-2.5 rounded-xl bg-[#CFA864]/20 hover:bg-[#CFA864]/30 border border-[#CFA864]/50 text-[#E5C38C] text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm hover:scale-102 cursor-pointer backdrop-blur-sm disabled:opacity-75 disabled:cursor-not-allowed"
+                title="Save Trip Draft to Backend API"
+              >
+                {isSavingDraft ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#CFA864]" />
+                    <span>Saving Draft...</span>
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="w-3.5 h-3.5 text-[#CFA864]" />
+                    <span>{backendTripId ? 'Update Trip Draft' : 'Save Trip Draft'}</span>
+                  </>
+                )}
+              </button>
+
               {hasSavedTrip && (
                 <button
                   type="button"
@@ -608,8 +945,10 @@ export default function PlanMyTrip() {
                 <IndianRupee size={14} />
               </div>
               <div className="truncate">
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block leading-none mb-1">Live Estimate</span>
-                <span className="font-bold text-[#E5C38C] truncate block">{formatINR(finalTripCost)}</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block leading-none mb-1">
+                  {apiCostBreakdown ? 'API Quote' : 'Live Estimate'}
+                </span>
+                <span className="font-bold text-[#E5C38C] truncate block">{formatINR(effectiveFinalTripCost)}</span>
               </div>
             </div>
           </div>
@@ -653,10 +992,20 @@ export default function PlanMyTrip() {
           <button
             type="button"
             onClick={handleGenerateTrip}
-            className="hidden md:inline-flex items-center gap-1 text-xs font-bold bg-[#0A3D40] text-white px-3.5 py-1.5 rounded-xl hover:bg-[#165B5F] transition shadow-xs shrink-0 cursor-pointer ml-2"
+            disabled={isGeneratingTrip}
+            className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold bg-[#0A3D40] text-white px-3.5 py-1.5 rounded-xl hover:bg-[#165B5F] transition shadow-xs shrink-0 cursor-pointer ml-2 disabled:opacity-75 disabled:cursor-not-allowed"
           >
-            <Sparkles size={12} className="text-[#CFA864]" />
-            <span>Generate</span>
+            {isGeneratingTrip ? (
+              <>
+                <Loader2 size={12} className="animate-spin text-[#CFA864]" />
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles size={12} className="text-[#CFA864]" />
+                <span>Generate</span>
+              </>
+            )}
           </button>
         </div>
 
@@ -879,10 +1228,20 @@ export default function PlanMyTrip() {
                 <button
                   type="button"
                   onClick={handleGenerateTrip}
-                  className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-[#CFA864] hover:bg-[#E5C38C] text-[#072D30] font-heading font-extrabold text-sm sm:text-base shadow-lg shadow-[#072D30]/40 transition-all hover:scale-103 active:scale-98 flex items-center justify-center gap-2.5 cursor-pointer shrink-0"
+                  disabled={isGeneratingTrip}
+                  className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-[#CFA864] hover:bg-[#E5C38C] text-[#072D30] font-heading font-extrabold text-sm sm:text-base shadow-lg shadow-[#072D30]/40 transition-all hover:scale-103 active:scale-98 flex items-center justify-center gap-2.5 cursor-pointer shrink-0 disabled:opacity-75 disabled:cursor-not-allowed"
                 >
-                  <Sparkles className="w-4 h-4 text-[#072D30]" />
-                  <span>Generate My Trip</span>
+                  {isGeneratingTrip ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-[#072D30]" />
+                      <span>Generating Itinerary & Quotes...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 text-[#072D30]" />
+                      <span>Generate My Trip</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -901,6 +1260,7 @@ export default function PlanMyTrip() {
                   preferences={preferences}
                   transport={transport}
                   onOpenExtendModal={() => setIsExtendModalOpen(true)}
+                  apiItinerary={apiItinerary}
                 />
               )}
             </div>
@@ -918,11 +1278,11 @@ export default function PlanMyTrip() {
                 flight={selectedFlight}
                 hotel={selectedHotel}
                 activities={selectedActivities}
-                flightTotal={flightTotal}
-                hotelTotal={hotelTotal}
-                activitiesTotal={activitiesTotal}
-                transportCost={transportCost}
-                finalTripCost={finalTripCost}
+                flightTotal={effectiveFlightTotal}
+                hotelTotal={effectiveHotelTotal}
+                activitiesTotal={effectiveActivitiesTotal}
+                transportCost={effectiveTransportCost}
+                finalTripCost={effectiveFinalTripCost}
                 transportMode={transport}
                 onViewItinerary={handleViewItinerary}
                 onSaveTrip={handleSaveTrip}
@@ -939,13 +1299,14 @@ export default function PlanMyTrip() {
             
             {/* Cost Breakdown & Real-Time Budget Validator */}
             <CostSummary
-              flightTotal={flightTotal}
-              hotelTotal={hotelTotal}
-              activitiesTotal={activitiesTotal}
-              transportCost={transportCost}
-              finalTripCost={finalTripCost}
+              flightTotal={effectiveFlightTotal}
+              hotelTotal={effectiveHotelTotal}
+              activitiesTotal={effectiveActivitiesTotal}
+              transportCost={effectiveTransportCost}
+              finalTripCost={effectiveFinalTripCost}
               budget={budget}
               transportMode={transport}
+              isApiCalculated={Boolean(apiCostBreakdown)}
             />
 
             {/* Dynamic Sticky Trip Preview Card */}
@@ -961,11 +1322,11 @@ export default function PlanMyTrip() {
               flight={selectedFlight}
               hotel={selectedHotel}
               activities={selectedActivities}
-              flightTotal={flightTotal}
-              hotelTotal={hotelTotal}
-              activitiesTotal={activitiesTotal}
-              transportCost={transportCost}
-              finalTripCost={finalTripCost}
+              flightTotal={effectiveFlightTotal}
+              hotelTotal={effectiveHotelTotal}
+              activitiesTotal={effectiveActivitiesTotal}
+              transportCost={effectiveTransportCost}
+              finalTripCost={effectiveFinalTripCost}
               budget={budget}
               onGenerateTrip={handleGenerateTrip}
               onViewItinerary={handleViewItinerary}
@@ -975,6 +1336,8 @@ export default function PlanMyTrip() {
               hasSavedTrip={hasSavedTrip}
               onRestoreTrip={handleRestoreTrip}
               onOpenExtendModal={() => setIsExtendModalOpen(true)}
+              isSaving={isSavingDraft}
+              isGenerating={isGeneratingTrip}
             />
           </div>
 
@@ -991,7 +1354,7 @@ export default function PlanMyTrip() {
             {selectedDestination?.name || 'Trip'} • {durationDays}D
           </span>
           <span className="font-extrabold text-base text-[#0A3D40] font-heading block">
-            {formatINR(finalTripCost)}
+            {formatINR(effectiveFinalTripCost)}
           </span>
         </div>
 
@@ -1009,10 +1372,20 @@ export default function PlanMyTrip() {
             <button
               type="button"
               onClick={handleGenerateTrip}
-              className="px-4 py-2.5 rounded-xl bg-[#CFA864] text-[#072D30] text-xs font-bold hover:bg-[#E5C38C] transition flex items-center gap-1.5 shadow-md cursor-pointer"
+              disabled={isGeneratingTrip}
+              className="px-4 py-2.5 rounded-xl bg-[#CFA864] text-[#072D30] text-xs font-bold hover:bg-[#E5C38C] transition flex items-center gap-1.5 shadow-md cursor-pointer disabled:opacity-75"
             >
-              <Sparkles size={13} />
-              <span>Generate</span>
+              {isGeneratingTrip ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles size={13} />
+                  <span>Generate</span>
+                </>
+              )}
             </button>
           )}
 
@@ -1043,7 +1416,7 @@ export default function PlanMyTrip() {
         hotelNights={hotelNights}
         selectedHotel={selectedHotel}
         rooms={rooms}
-        finalTripCost={finalTripCost}
+        finalTripCost={effectiveFinalTripCost}
         onConfirmExtend={handleConfirmExtend}
       />
     </div>

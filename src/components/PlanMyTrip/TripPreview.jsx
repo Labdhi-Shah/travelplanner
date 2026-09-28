@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   MapPin, Calendar, Users, Plane, Hotel, Compass, 
-  Bookmark, Eye, CheckCircle2, AlertTriangle, ArrowRight, Sparkles 
+  Bookmark, Eye, CheckCircle2, AlertTriangle, ArrowRight, Sparkles, Loader2 
 } from 'lucide-react';
 import { formatINR } from '../../utils/pricing';
 
@@ -30,7 +30,9 @@ export default function TripPreview({
   hasSavedTrip,
   onRestoreTrip,
   onProceedToPayment,
-  onOpenExtendModal
+  onOpenExtendModal,
+  isSaving = false,
+  isGenerating = false
 }) {
   const isWithinBudget = finalTripCost <= budget;
   const difference = Math.abs(budget - finalTripCost);
@@ -222,10 +224,20 @@ export default function TripPreview({
         <button
           type="button"
           onClick={onGenerateTrip}
-          className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-light text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-lg"
+          disabled={isGenerating}
+          className="w-full py-3 px-4 rounded-xl bg-primary hover:bg-primary-light text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-lg disabled:opacity-75 disabled:cursor-not-allowed"
         >
-          <Sparkles className="w-4 h-4 text-accent" />
-          <span>{isGenerated ? 'Regenerate Itinerary' : 'Generate My Trip'}</span>
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin text-accent" />
+              <span>Generating Itinerary & Quotes...</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-4 h-4 text-accent" />
+              <span>{isGenerated ? 'Regenerate Itinerary' : 'Generate My Trip'}</span>
+            </>
+          )}
         </button>
 
         {onProceedToPayment && (
@@ -263,10 +275,20 @@ export default function TripPreview({
           <button
             type="button"
             onClick={onSaveTrip}
-            className="py-2.5 px-3 rounded-xl bg-accent/20 hover:bg-accent/30 text-slate-900 border border-accent/40 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+            disabled={isSaving}
+            className="py-2.5 px-3 rounded-xl bg-accent/20 hover:bg-accent/30 text-slate-900 border border-accent/40 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
           >
-            <Bookmark className="w-3.5 h-3.5 text-amber-700" />
-            <span>Save Trip</span>
+            {isSaving ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Bookmark className="w-3.5 h-3.5 text-amber-700" />
+                <span>Save Trip</span>
+              </>
+            )}
           </button>
         </div>
       </div>

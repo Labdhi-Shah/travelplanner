@@ -9,7 +9,8 @@ export default function CostSummary({
   transportCost,
   finalTripCost,
   budget,
-  transportMode
+  transportMode,
+  isApiCalculated = false
 }) {
   const isWithinBudget = finalTripCost <= budget;
   const difference = Math.abs(budget - finalTripCost);
@@ -19,8 +20,11 @@ export default function CostSummary({
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 mb-5 transition-all">
       <h3 className="text-base font-bold text-slate-800 font-heading mb-4 flex items-center justify-between">
         <span>Cost Breakdown</span>
-        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-          Real-time
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${
+          isApiCalculated ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+        }`}>
+          {isApiCalculated && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+          <span>{isApiCalculated ? 'API Quote' : 'Real-time'}</span>
         </span>
       </h3>
 
@@ -60,9 +64,16 @@ export default function CostSummary({
 
         {/* Final Trip Cost Total Line */}
         <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-sm">
-          <span className="font-bold text-slate-900 font-heading">
-            Final Trip Cost
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-slate-900 font-heading">
+              Final Trip Cost
+            </span>
+            {isApiCalculated && (
+              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                API Verified
+              </span>
+            )}
+          </div>
           <span className="font-extrabold text-base text-primary-dark font-heading">
             {formatINR(finalTripCost)}
           </span>
